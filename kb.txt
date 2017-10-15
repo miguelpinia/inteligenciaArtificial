@@ -1,0 +1,128 @@
+[
+	clase(
+		c(
+			top,
+			none,
+			[],
+			[],
+			[]
+		)
+	),clase(
+		c(
+			animal,
+			top,
+			[movil],
+			[],
+			[]
+		)
+	),
+	clase(
+		c(
+			perro,
+			animal,
+			[
+				canino
+			],
+			[
+				odia=>[gato]
+			],
+			[
+				1,
+				2
+			]
+		)
+	),
+	objeto(
+		o(1,perro,[agresivo,alias=>[diablo]],[muerde=>[2]])
+	),
+	objeto(
+		o(2,perro,[not(agresivo),alias=>[fido,bueno]],[not(odia=>[gato]),odia=>[ardilla]])
+	),
+	clase(
+		c(
+			gato,
+			animal,
+			[
+				felino
+			],
+			[
+				huye=>[perro]
+			],
+			[]
+		)
+	),
+	clase(
+		c(
+			vegetal,
+			top,
+			[
+				not(movil),
+				not(color=>negro)
+			],
+			[],
+			[]
+		)
+	),
+	clase(
+		c(
+			girasol,
+			vegetal,
+			[
+				movil,
+				color=>amarillo
+			],
+			[],
+			[
+				3,
+				4
+			]
+		)
+	),
+	objeto(
+		o(3,girasol,[color=>rojo,alias=>[rojito,chulote]],[])
+	),
+	objeto(
+		o(4,girasol,[alias=>[udf]],[])
+	),
+	clase(
+		c(
+			rosa,
+			vegetal,
+			[bonita,color=>udf],
+			[],
+			[5,6,7]
+		)
+	),
+	objeto(
+		o(5,rosa,[color=>rojo],[])
+	),
+	objeto(
+		o(6,rosa,[],[])
+	),
+	objeto(
+		o(7,rosa,[color=>blanco],[])
+	)
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
