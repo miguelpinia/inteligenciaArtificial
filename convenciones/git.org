@@ -1,4 +1,4 @@
-#+title: Git
+ #+title: Git
 #+author: Miguel Piña
 #+date: [2017-10-16 lun 14:12]
 
@@ -43,7 +43,8 @@ la máquina:
                 versionado.
 - git diff :: Muestra las diferencias de los archivos.
 - git add [file] :: Agrega un snapshot del archivo para realizar el versionado.
-- git reset [file] :: Regresa a la última versión los cambios de un archivo.
+- git reset --hard :: Regresa al estado original del último commit.
+- git checkout [file] :: Regresa al estado original de un archivo.
 - git commit (-m "comment") :: Realiza el versionado de los cambios.
 
 ** Ramas
@@ -109,7 +110,7 @@ la máquina:
 - Los mensajes de commit deben ser escritos en modo indicativo impersonal.
 - Los archivos deben de estar codificados en utf-8.
 - Los archivos no deben de contener espacios en blancos después del término de
-  una linea. Es malo.
+  una linea.
 
 * Algunos enlaces interesantes
 
