@@ -104,5 +104,7 @@ la máquina:
 
 * Algunos enlaces interesantes
 
-[[https://dev.to/andydangerous/how-i-git][How I git]]
-[[https://dev.to/gonedark/a-closer-look-at-git-rebase][A closer look at git rebase]]
+- [[https://dev.to/andydangerous/how-i-git][How I git]]
+- [[https://dev.to/gonedark/a-closer-look-at-git-rebase][A closer look at git rebase]]
+- [[https://dev.to/dhruv/essential-git-commands-every-developer-should-know-2fl][Essential git commands that every developer should know]]
+- [[https://dev.to/maurobringolf/lets-learn-git-undoing-andor-fixing-the-last-commit][Let's learn Git: Undoing and/or fixing the last commit.]]
