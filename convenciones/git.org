@@ -94,6 +94,9 @@ la máquina:
 - Squash(ear) commits.
 - 50/72. Mensaje del commit en 50 caracteres, la descripción se corta a 72
   caracteres por linea.
+
+[[file:commit.png]]
+
 - Antes de mezclar con master, hacer un rebase de master y después mezclar la
   rama con los cambios.
 - Antes de mezclar con master, los demás integrantes del equipo deben de estar
