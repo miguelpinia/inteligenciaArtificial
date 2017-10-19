@@ -102,6 +102,15 @@ la máquina:
 - Antes de mezclar con master, los demás integrantes del equipo deben de estar
   de acuerdo con los cambios implementados en una rama. (Peer programming).
 
+** Sugerencias
+
+- Usar alguna herramienta como magit (emacs) o gitk para facilitar la consulta
+  de cambios de una rama.
+- Los mensajes de commit deben ser escritos en modo indicativo impersonal.
+- Los archivos deben de estar codificados en utf-8.
+- Los archivos no deben de contener espacios en blancos después del término de
+  una linea. Es malo.
+
 * Algunos enlaces interesantes
 
 - [[https://dev.to/andydangerous/how-i-git][How I git]]
