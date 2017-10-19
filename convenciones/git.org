@@ -1,0 +1,105 @@
+#+title: Git
+#+author: Miguel Piña
+#+date: [2017-10-16 lun 14:12]
+
+* ¿Qué es git?
+
+Git (pronunciado "guit"​) es un software de control de versiones diseñado por
+Linus Torvalds, pensando en la eficiencia y la confiabilidad del mantenimiento
+de versiones de aplicaciones cuando éstas tienen un gran número de archivos de
+código fuente.
+
+* Llevando el control de nuestro código
+
+La idea de usar git es llevar el control de los cambios del código fuente que
+estemos desarrollando. Por ello, vamos a dividir el uso de comandos de git de
+acuerdo a la necesidad que se esté resolviendo:
+
+- Configurar git
+- Creación de repositorios
+- Cambios en el código
+- Manejo de ramas
+- Revisando la historia
+- Deshaciendo cambios
+- Sincronizando cambios
+
+** Configurando git
+
+Lo primero es establecer quién es la persona que va a realizar los cambios sobre
+la máquina:
+- git config --global user.name "[name]" :: El nombre que se mostrará para las
+     transacciones realizadas por git.
+- git config --global user.email "[email address]" :: Establece el correo que se
+     mostrará para las transacciones realizadas por git.
+
+** Creando repositorios
+
+- git init [name] :: Inicializa un repositorio con el nombre *name*.
+- git clone [url] :: Clona el repositorio que se encuentra en *url*.
+
+** Haciendo cambios
+
+- git status :: Lista todos los archivos nuevos o modificados para realizar el
+                versionado.
+- git diff :: Muestra las diferencias de los archivos.
+- git add [file] :: Agrega un snapshot del archivo para realizar el versionado.
+- git reset [file] :: Regresa a la última versión los cambios de un archivo.
+- git commit (-m "comment") :: Realiza el versionado de los cambios.
+
+** Ramas
+
+- git branch :: Lista todas las ramas locales.
+- git branch [new-branch] :: Crea una nueva rama a partir del estado actual.
+- git checkout [new-branch] :: Intercambia a la rama especificada y actualiza el
+     directorio de trabajo.
+- git merge [branch] :: Mezcla la rama especificada con la rama actual.
+- git branch -d [branch] :: Elimina la rama especificada.
+- git rebase [branch] :: Actualiza los cambios de la rama especificada en la
+     rama actual.
+
+** Revisando la historia
+
+- git log :: Lista la cambios de la rama actual
+- git log --follow [file] :: Lista todos los cambios del archivo solicitado.
+- git diff [first-branch]...[second-branch] :: Muestra las diferencias entre dos
+     ramas.
+- git show [commit] :: Muestra los metadatos y cambios de contenido de un commit
+     especifico.
+
+** Deshaciendo cambios
+- git reset [commit] :: Deshace todos los cambios después del commit preservando
+     cambios locales.
+- git reset --hard [commit] :: Descarta todos los cambios de vuelta al commit
+     especificado.
+
+** Sincronizando cambios
+
+- git fetch :: Descarga todos los cambios al repositorio
+- git push :: Empuja los cambios al repositorio remoto
+- git pull :: Descarga todos los cambios al repositorio
+
+* Manejando ramas eficientemente
+
+
+[[file:git-model.png]]
+
+* Algunas buenas prácticas
+
+- Tratar que los cambios de git reflejen una historia. La historia de como se
+  hicieron los cambios en el código.
+- Rebasar las ramas para mantenerlas actualizadas.
+
+[[file:rebase.png]]
+
+- Squash(ear) commits.
+- 50/72. Mensaje del commit en 50 caracteres, la descripción se corta a 72
+  caracteres por linea.
+- Antes de mezclar con master, hacer un rebase de master y después mezclar la
+  rama con los cambios.
+- Antes de mezclar con master, los demás integrantes del equipo deben de estar
+  de acuerdo con los cambios implementados en una rama. (Peer programming).
+
+* Algunos enlaces interesantes
+
+[[https://dev.to/andydangerous/how-i-git][How I git]]
+[[https://dev.to/gonedark/a-closer-look-at-git-rebase][A closer look at git rebase]]
