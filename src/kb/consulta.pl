@@ -146,3 +146,19 @@ superclases(KB, Clase, SuperClases) :-
     obten_clase(KB, Clase, clase(Clase, Padre, _, _, _)),
     superclases(KB, Padre, SCls),
     append([Padre], SCls, SuperClases).
+
+ext_clase(_, [], []) :- !.
+ext_clase(KB, [Clase|Clases], Objetos) :-
+    objetos_de_clase(KB, Clase, Objs),
+    ext_clase(KB, Clases, RestObjs),
+    append(Objs, RestObjs, Objetos).
+
+/*
+ * Obtiene la extensión de la clase Clase.
+ * %?-kb(KB), extension_de_clase(KB, top, Objetos).
+ */
+extension_de_clase(KB, Clase, Objetos) :-
+    subclases(KB, Clase, SubClases),
+    append([Clase], SubClases, SCls),
+    ext_clase(KB, SCls, Objs),
+    nombre_objetos(Objs, Objetos).
