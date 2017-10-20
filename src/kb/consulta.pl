@@ -77,3 +77,72 @@ obten_objetos(KB, [Nombre|RestoNombres], Objetos) :-
 objetos_de_clase(KB, Nombre, Objetos) :-
     obten_clase(KB, Nombre, clase(Nombre, _, _, _, Objs)),
     obten_objetos(KB, Objs, Objetos).
+
+/*
+ * Verdadero si X unifica con un objeto.
+ * %?- es_objeto(objeto(_, _, _, _)).
+ */
+es_objeto(X) :- X = objeto(_, _, _, _).
+
+/*
+ * Verdadero si X unifica con una clase.
+ */
+es_clase(X) :- X = clase(_, _, _, _, _).
+
+/*
+ * Filtra las clases de KB.
+ */
+lista_de_clases(KB, Clases) :- include(es_clase, KB, Clases).
+
+/*
+ * Filtra los objetos de KB.
+ */
+lista_de_objetos(KB, Objetos) :- include(es_objeto, KB, Objetos).
+
+/*
+ * Obtiene todos los hijos de KB
+ */
+hijos(KB, Clase, Hijos) :-
+    findall(clase(Nombre, Clase, Preds, Rels, Objs),
+            member(clase(Nombre, Clase, Preds, Rels, Objs), KB),
+            Hijos).
+
+/*
+ * Obtiene el nombre de las clases a partir de una lista de funtores
+ * de clase.
+ */
+nombre_clases([], []) :- !.
+nombre_clases([clase(Nombre, _, _, _, _)|Otras], [Nombre|Otros]) :- nombre_clases(Otras, Otros).
+
+/*
+ * Obtiene el nombre de los objetos a partir de una lista de functores
+ * de objetos.
+ */
+nombre_objetos([], []) :- !.
+nombre_objetos([objeto(Nombre, _, _, _)|OtrosObjs], [Nombre|OtrosNombres]) :- nombre_objetos(OtrosObjs, OtrosNombres).
+
+s_(_, [], []) :- !.
+s_(KB, [Clase|OtrasClases], SubClases) :-
+    hijos(KB, Clase, Hijos),
+    nombre_clases(Hijos, Nombres),
+    append(OtrasClases, Nombres, NombreClases),
+    s_(KB, NombreClases, NSubclases),
+    append(Hijos, NSubclases, SubClases).
+
+/*
+ * Obtiene todas las subclases de la clase Clase.
+ * %?- kb(KB), subclases(KB, top, Subclases).
+ */
+subclases(KB, Clase, SubClases) :-
+    s_(KB, [Clase], Scls),
+    nombre_clases(Scls, SubClases).
+
+/*
+ * Obtiene todas las superclases de la clase Clase.
+ * %?- kb(KB), superclases(KB, rosa, SuperClases).
+ */
+superclases(_, Clase, []) :- Clase = top, !.
+superclases(KB, Clase, SuperClases) :-
+    obten_clase(KB, Clase, clase(Clase, Padre, _, _, _)),
+    superclases(KB, Padre, SCls),
+    append([Padre], SCls, SuperClases).
