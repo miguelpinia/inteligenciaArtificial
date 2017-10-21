@@ -166,3 +166,176 @@ extension_de_clase(KB, Clase, Objetos) :-
     append([Clase], SubClases, SCls),
     ext_clase(KB, SCls, Objs),
     nombre_objetos(Objs, Objetos).
+
+/*
+ * Obtiene la identidad de una propiedad.
+ * %?- prop_identidad(not(not(movil)), Prop).
+ * %?- prop_identidad(not(movil), Prop).
+ * %?- prop_identidad(movil, Prop).
+ */
+prop_identidad(not(not(Prop)), Prop) :- !.
+prop_identidad(Prop, Prop).
+
+/*
+ * Obtiene la propiedad negada de una propiedad.
+ * %?- prop_negada(movil, Prop).
+ * %?- prop_negada(not(movil), Prop).
+ * %?- prop_negada(not(not(movil)), Prop).
+ */
+prop_negada(not(Prop), Prop) :- !.
+prop_negada(Prop, not(Prop)).
+
+/*
+ * Obtiene una propiedad con su valor a partir de su nombre.
+ * %?- obten_propiedad_completa(alias, [color=>rojo,alias=>[rojito,chulote]], Prop).
+ * %?- obten_propiedad_completa(not(color), [not(movil), not(color=>negro)], Prop).
+ */
+obten_propiedad_completa(_, [], _) :- fail.
+obten_propiedad_completa(Prop, [Prop=>Valor|_], Prop=>Valor) :- !.
+obten_propiedad_completa(not(Prop), [not(Prop=>Valor)|_], not(Prop=>Valor)) :- !.
+obten_propiedad_completa(Prop, [_|Props], X) :- obten_propiedad_completa(Prop, Props, X).
+
+/*
+ *
+ * Verifica si dado el nombre de una propiedad y un valor, estos
+ * forman parte de la lista de propiedades.
+ * %?- existe_valor_en_propiedades(alias, chulote, [color=>rojo,alias=>[rojito,chulote]]).
+ * %?- existe_valor_en_propiedades(color, rojo, [color=>rojo,alias=>[rojito,chulote]]).
+ * %?- existe_valor_en_propiedades(color, azul, [color=>rojo,alias=>[rojito,chulote]]).
+ * %?- existe_valor_en_propiedades(alias, azul, [color=>rojo,alias=>[rojito,chulote]]).
+ * %?- existe_valor_en_propiedades(not(color), negro, [not(movil), not(color=>negro)]).
+ * %?- existe_valor_en_propiedades(color, negro, [not(movil), not(color=>negro)]).
+ */
+existe_valor_en_propiedades(not(Prop), Valor, Propiedades) :-
+    member(not(Prop=>_), Propiedades),
+    obten_propiedad_completa(not(Prop), Propiedades, not(Prop=>Valores)),
+    (member(Valor, Valores); Valor = Valores), !.
+existe_valor_en_propiedades(Prop, Valor, Propiedades) :-
+    member(Prop=>_, Propiedades),
+    obten_propiedad_completa(Prop, Propiedades, Prop=>Valores),
+    (member(Valor, Valores); Valor = Valores), !.
+
+
+/*
+ * Verifica si un objeto o clase tiene una propiedad
+ * determinada. Puede preguntar de tres formas.
+ *
+ * - El objeto o clase tiene la propiedad con valor o forma parte de
+ * la lista de valores.
+ * - El objeto o clase tiene la propiedad con o sin valor (no importa el
+ *   valor).
+ * - El objeto o clase no tiene la propiedad con valor o forma parte
+ * de la lista de valores.
+ * - El objeto o clase no tiene la propiedad con o sin valor (no importa
+ *   el valor).
+ */
+tiene_propiedad(not(Prop=>Val), clase(_, _, Props, _, _)) :-
+    member(not(Prop=>Val), Props);
+    existe_valor_en_propiedades(not(Prop), Val, Props).
+tiene_propiedad(Prop=>Val, clase(_, _, Props, _, _)) :-
+    member(Prop=>Val, Props); existe_valor_en_propiedades(Prop, Val, Props).
+tiene_propiedad(Prop, clase(_, _, Props, _, _)) :-
+    member(Prop, Props); member(Prop=>_, Props).
+tiene_propiedad(not(Prop), clase(_, _, Props, _, _)) :-
+    member(not(Prop), Props); member(not(Prop=>_), Props).
+tiene_propiedad(not(Prop=>Val), objeto(_, _, Props, _)) :-
+    member(not(Prop=>Val), Props);
+    existe_valor_en_propiedades(not(Prop), Val, Props).
+tiene_propiedad(Prop=>Val, objeto(_, _, Props, _)) :-
+    member(Prop=>Val, Props); existe_valor_en_propiedades(Prop, Val, Props).
+tiene_propiedad(Prop, objeto(_, _, Props, _)) :-
+    member(Prop, Props); member(Prop=>_, Props).
+tiene_propiedad(not(Prop), objeto(_, _, Props, _)) :-
+    member(not(Prop), Props), member(not(Prop=>_), Props).
+
+
+/*
+ * Remueve duplicados de una lista.
+ * %?- rem_dups([a, b, b, a, c, c, d, d, d, e], Result).
+ */
+rem_dups([],[]).
+rem_dups([X|Rest], Result) :- member(X,Rest), rem_dups(Rest,Result), !.
+rem_dups([X|Rest], [X|Rest1]) :- not(member(X,Rest)), rem_dups(Rest,Rest1), !.
+
+
+/*
+ * Encuentra todos los objetos de la base de conocimiento que
+ * satisfacen la propiedad Prop.
+ * %?- kb(KB), objetos_con_propiedad(KB, color, Objetos).
+ * %?- kb(KB), objetos_con_propiedad(KB, color=>rojo, Objetos).
+ * %?- kb(KB), objetos_con_propiedad(KB, alias, Objetos).
+ * %?- kb(KB), objetos_con_propiedad(KB, alias=>rojito, Objetos).
+ * %?- kb(KB), objetos_con_propiedad(KB, not(color=>rojo), Objetos).
+ */
+objetos_con_propiedad(KB, Prop, Objetos) :-
+    lista_de_objetos(KB, Objs),
+    include(tiene_propiedad(Prop), Objs, Objetos).
+
+/*
+ * Dada una lista de clases, obtiene la lista de todas las clases que
+ * tienen una propiedad negada.
+ * %?- kb(KB), lista_de_clases(KB, Clases), clases_con_propiedad_negada(movil, Clases, ClsPropNeg).
+ */
+clases_con_propiedad_negada(Prop, Clases, ClasesPropNegada) :-
+    prop_negada(Prop, NotProp),
+    include(tiene_propiedad(NotProp), Clases, ClasesPropNegada).
+
+/*
+ * Encuentra todas las clases de la base de conocimiento que
+ * satisfacen la propiedad Prop.
+ * %?- kb(KB), clases_con_propiedad(KB, movil, Clases).
+ * %?- kb(KB), clases_con_propiedad(KB, color, Clases).
+ * %?- kb(KB), clases_con_propiedad(KB, not(movil), Clases).
+ * %?- kb(KB), clases_con_propiedad(KB, alias, Clases).
+ * %?- kb(KB), clases_con_propiedad(KB, color=>amarillo, Clases).
+ * %?- kb(KB), clases_con_propiedad(KB, not(color=>negro), Clases).
+ */
+clases_con_propiedad(KB, Prop, Clases) :-
+    lista_de_clases(KB, Cls),
+    include(tiene_propiedad(Prop), Cls, ClsProp),
+    nombre_clases(ClsProp, NomClsProp),
+    s_(KB, NomClsProp, SubClases),
+    clases_con_propiedad_negada(Prop, SubClases, NotSubClases),
+    subtract(SubClases, NotSubClases, NSubClases),
+    append(ClsProp, NSubClases, Clases).
+
+/*
+ * Dada una lista de clases, obtiene todos los objetos asociados a las
+ * clases.
+ * %?- kb(KB), extrae_objetos_de_clases(KB, [clase(perro, animal, [canino], [odia=>[gato]], [abc, def])], Objetos).
+ */
+extrae_objetos_de_clases(_, [], []) :- !.
+extrae_objetos_de_clases(KB, [clase(_, _, _, _, NomObjs)|Otros], Objetos) :-
+    obten_objetos(KB, NomObjs, Objs),
+    extrae_objetos_de_clases(KB, Otros, NObjs),
+    append(Objs, NObjs, Objetos).
+
+/*
+ * Dada una lista de objetos, obtiene todos los objetos que tienen una
+ * propiedad negada.
+ */
+objetos_con_propiedad_negada(Prop, Objetos, ObjetosPropNegada) :-
+    prop_negada(Prop, NotProp),
+    include(tiene_propiedad(NotProp), Objetos, ObjetosPropNegada).
+
+/*
+ * Dada una propiedad, obtiene todos los objetos con esa propiedad a
+ * partir de la información de la base de conocimiento.
+ */
+objetos_de_clase_con_propiedad(KB, Prop, Objetos) :-
+    clases_con_propiedad(KB, Prop, ClsProp),
+    extrae_objetos_de_clases(KB, ClsProp, ObjsCls),
+    objetos_con_propiedad_negada(Prop, ObjsCls, ObjsPropNegada),
+    subtract(ObjsCls, ObjsPropNegada, Objetos).
+
+/*
+ * Dada una propiedad, obtiene todos los objetos que están en la
+ * extensión de la propiedad de una base de conocimiento.
+ * %?- kb(KB), extension_propiedad(KB, movil, Objetos).
+ * %?- kb(KB), extension_propiedad(KB, not(movil), Objetos).
+ */
+extension_propiedad(KB, Prop, Objetos) :-
+    objetos_con_propiedad(KB, Prop, ObjsProp),
+    objetos_de_clase_con_propiedad(KB, Prop, ObjsCls),
+    append(ObjsProp, ObjsCls, ObjsMerge),
+    rem_dups(ObjsMerge, Objetos).
