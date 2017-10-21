@@ -14,13 +14,13 @@ kb([clase(top, none, [], [], []),
     objeto(def, perro, [not(agresivo), alias=>[fido, bueno]], [not(odia=>[gato]), odia=>[ardilla]]),
     clase(gato, animal, [felino], [huye=>[perro]], []),
     clase(vegetal,top,	[not(movil), not(color=>negro)], [], []),
-    clase(girasol,vegetal, [movil, color=>amarillo],[],	[gira1, gira2]),
+    clase(girasol,vegetal, [movil, color=>[amarillo, rojo]],[], [gira1, gira2]),
     objeto(gira1,girasol,[color=>rojo,alias=>[rojito,chulote]],[]),
     objeto(gira2,girasol,[alias=>[udf]],[]),
     clase(rosa, vegetal, [bonita,color=>udf], [], [r1,r2,r3]),
     objeto(r1,rosa,[color=>rojo],[]),
-    objeto(r2,rosa,[],[]),
-    objeto(r3,rosa,[color=>blanco],[])]).
+    objeto(r2,rosa,[movil],[]),
+    objeto(r3,rosa,[color=>blanco, not(color=>rojo)],[])]).
 
 /*
  * Obtiene la cabeza de una lista.
