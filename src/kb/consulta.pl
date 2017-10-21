@@ -334,7 +334,7 @@ objetos_de_clase_con_propiedad(KB, Prop, Objetos) :-
  * %?- kb(KB), extension_propiedad(KB, movil, Objetos).
  * %?- kb(KB), extension_propiedad(KB, not(movil), Objetos).
  */
-extension_propiedad(KB, Prop, Objetos) :-
+extension_de_propiedad(KB, Prop, Objetos) :-
     objetos_con_propiedad(KB, Prop, ObjsProp),
     objetos_de_clase_con_propiedad(KB, Prop, ObjsCls),
     append(ObjsProp, ObjsCls, ObjsMerge),
