@@ -339,3 +339,11 @@ extension_de_propiedad(KB, Prop, Objetos) :-
     objetos_de_clase_con_propiedad(KB, Prop, ObjsCls),
     append(ObjsProp, ObjsCls, ObjsMerge),
     rem_dups(ObjsMerge, Objetos).
+
+/*
+ * Dada una propiedad, obtiene el nombre de todos los objetos que
+ * están bajo la extension de la propiedad.
+ */
+extension_de_propiedad_nombres(KB, Prop, NombreObjetos) :-
+    extension_de_propiedad(KB, Prop, Objetos),
+    nombre_objetos(Objetos, NombreObjetos).
