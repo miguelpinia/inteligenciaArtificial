@@ -29,8 +29,8 @@ cabeza([X|_], X).
 
 /*
  * Obtiene el functor de clase asociado al nombre Nombre.
- * %?- kb(X), obten_clase(X, perro, clase(A, B, C, D, E)).
- * %?- kb(X), obten_clase(X, perro, X).
+ * %?- kb(KB), obten_clase(KB, perro, clase(A, B, C, D, E)).
+ * %?- kb(KB), obten_clase(KB, perro, KB).
  */
 obten_clase(KB, Nombre, Clase) :-
     findall(clase(Nombre, Padre, Preds, Rels, Objs),
@@ -86,21 +86,25 @@ es_objeto(X) :- X = objeto(_, _, _, _).
 
 /*
  * Verdadero si X unifica con una clase.
+ * %?- es_clase(clase(_, _, _, _, _)).
  */
 es_clase(X) :- X = clase(_, _, _, _, _).
 
 /*
  * Filtra las clases de KB.
+ * %?- kb(KB), lista_de_clases(KB, Clases).
  */
 lista_de_clases(KB, Clases) :- include(es_clase, KB, Clases).
 
 /*
  * Filtra los objetos de KB.
+ * %?- kb(KB), lista_de_objetos(KB, Objetos).
  */
 lista_de_objetos(KB, Objetos) :- include(es_objeto, KB, Objetos).
 
 /*
- * Obtiene todos los hijos de KB
+ * Obtiene todos los hijos directos de la clase Clase.
+ * kb(KB), hijos(KB, top, Hijos).
  */
 hijos(KB, Clase, Hijos) :-
     findall(clase(Nombre, Clase, Preds, Rels, Objs),
