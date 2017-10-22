@@ -1,4 +1,14 @@
 /*
+ * Predicados principales:
+ * - extension_de_clase(KB, Clase, Objetos)
+ * - extension_de_propiedad(KB, Prop, Objetos)
+ *   - pprint_extension_de_propiedad(KB, Prop, Objetos)
+ * - clases_de_objeto(KB, Objeto, Clases)
+ * - propiedades_de_objeto(KB, Objeto, Propiedades)
+ * - propiedades_de_clase(KB, Clase, Propiedades) ? renombrar?
+ */
+
+/*
  * Agrega operador =>.
  */
 :- op(800,xfx,'=>').
@@ -206,6 +216,31 @@ prop_negada(not(Prop), Prop) :- !.
 prop_negada(Prop, not(Prop)).
 
 /*
+ * Dado el nombre de una propiedad y una lista de propiedades, obtiene
+ * la propiedad completa.
+ */
+obten_propiedad(_, [], _) :- fail.
+obten_propiedad(not(Prop=>Valor), _, not(Prop=>Valor)) :- !.
+obten_propiedad(not(Prop), [not(Prop=>Valor)|_], not(Prop=>Valor)) :- !.
+obten_propiedad(not(Prop), [not(Prop)|_], not(Prop)) :- !.
+obten_propiedad(not(Prop), [_|OtrasProps], P) :- obten_propiedad(not(Prop), OtrasProps, P).
+obten_propiedad(Prop=>Valor, _, Prop=>Valor) :- !.
+obten_propiedad(Prop, [Prop=>Valor|_], Prop=>Valor) :- !.
+obten_propiedad(Prop, [Prop|_], Prop) :- !.
+obten_propiedad(Prop, [_|OtrasProps], P) :- obten_propiedad(Prop, OtrasProps, P).
+
+/*
+ * Sugar function para definir una función identidad.
+ */
+identidad(X, X).
+
+/*
+ * Predicado para verificar si un objeto tiene el nombre Nombre. Sugar
+ * function.
+ */
+mismo_nombre(Nombre, objeto(Nombre, _, _, _)).
+
+/*
  * Obtiene una propiedad con su valor a partir de su nombre.
  * %?- obten_propiedad_completa(alias, [color=>rojo,alias=>[rojito,chulote]], Prop).
  * %?- obten_propiedad_completa(not(color), [not(movil), not(color=>negro)], Prop).
@@ -391,6 +426,12 @@ rem_dups([],[]).
 rem_dups([X|Rest], Result) :- member(X,Rest), rem_dups(Rest,Result), !.
 rem_dups([X|Rest], [X|Rest1]) :- not(member(X,Rest)), rem_dups(Rest,Rest1), !.
 
+% kb(KB), lista_de_objetos(KB, Objs), construye_objetos_propiedades_completas(KB, Objs, NObjs).
+construye_objetos_propiedades_completas(_, [], []) :- !.
+construye_objetos_propiedades_completas(KB, [objeto(Nombre, Clase, _, Relaciones)|OtrosObjetos], [NuevoObj|NuevosObjetos]) :-
+    propiedades_de_objeto(KB, Nombre, NProps),
+    identidad(objeto(Nombre, Clase, NProps, Relaciones), NuevoObj),
+    construye_objetos_propiedades_completas(KB, OtrosObjetos, NuevosObjetos).
 
 /*
  * Encuentra todos los objetos de la base de conocimiento que
@@ -403,16 +444,14 @@ rem_dups([X|Rest], [X|Rest1]) :- not(member(X,Rest)), rem_dups(Rest,Rest1), !.
  */
 objetos_con_propiedad(KB, Prop, Objetos) :-
     lista_de_objetos(KB, Objs),
-    include(tiene_propiedad(Prop), Objs, Objetos).
+    construye_objetos_propiedades_completas(KB, Objs, NObjs),
+    include(tiene_propiedad(Prop), NObjs, Objetos).
 
-/*
- * Dada una lista de clases, obtiene la lista de todas las clases que
- * tienen una propiedad negada.
- * %?- kb(KB), lista_de_clases(KB, Clases), clases_con_propiedad_negada(movil, Clases, ClsPropNeg).
- */
-clases_con_propiedad_negada(Prop, Clases, ClasesPropNegada) :-
-    prop_negada(Prop, NotProp),
-    include(tiene_propiedad(NotProp), Clases, ClasesPropNegada).
+construye_clases_propiedades_completas(_, [], []) :- !.
+construye_clases_propiedades_completas(KB, [clase(Nombre, SuperClase, _, Relaciones, Objs)|OtrasClases], [NuevaClase|NuevasClases]) :-
+    propiedades_de_clase(KB, Nombre, NProps),
+    identidad(clase(Nombre, SuperClase, NProps, Relaciones, Objs), NuevaClase),
+    construye_clases_propiedades_completas(KB, OtrasClases, NuevasClases).
 
 /*
  * Encuentra todas las clases de la base de conocimiento que
@@ -426,12 +465,8 @@ clases_con_propiedad_negada(Prop, Clases, ClasesPropNegada) :-
  */
 clases_con_propiedad(KB, Prop, Clases) :-
     lista_de_clases(KB, Cls),
-    include(tiene_propiedad(Prop), Cls, ClsProp),
-    nombre_clases(ClsProp, NomClsProp),
-    s_(KB, NomClsProp, SubClases),
-    clases_con_propiedad_negada(Prop, SubClases, NotSubClases),
-    subtract(SubClases, NotSubClases, NSubClases),
-    append(ClsProp, NSubClases, Clases).
+    construye_clases_propiedades_completas(KB, Cls, NCls),
+    include(tiene_propiedad(Prop), NCls, Clases).
 
 /*
  * Dada una lista de clases, obtiene todos los objetos asociados a las
@@ -463,41 +498,29 @@ objetos_de_clase_con_propiedad(KB, Prop, Objetos) :-
     subtract(ObjsCls, ObjsPropNegada, Objetos).
 
 /*
+ * De una lista de objetos, elimina a todos aquellos que tienen el
+ * mismo nombre, dejando sólo una instancia.
+ */
+elimina_obj_dup([], []) :- !.
+elimina_obj_dup([objeto(N, C, P, R)|OtrosObjetos], Res) :-
+    exclude(mismo_nombre(N), OtrosObjetos, ResTmp),
+    elimina_obj_dup(ResTmp, OtrosRes),
+    append([objeto(N, C, P, R)], OtrosRes, Res).
+
+/*
  * Dada una propiedad, obtiene todos los objetos que están en la
  * extensión de la propiedad de una base de conocimiento.
  * %?- kb(KB), extension_propiedad(KB, movil, Objetos).
  * %?- kb(KB), extension_propiedad(KB, not(movil), Objetos).
+ * %?- kb(KB), extension_de_propiedad(KB, color=>amarillo, Objetos).
+ * %?- kb(KB), extension_de_propiedad(KB, color=>rojo, Objetos).
+ * %?- kb(KB), extension_de_propiedad(KB, color, Objetos).
  */
-% FIXME: Arreglar el caso esquinado de la extensión de propiedad, la
-% cual no debería de mostrar objetos que tienen negaciones
-% particulares de una lista de valores de propiedad. Por ejemplo, el
-% caso de la clase girasol que tiene multiples colores y tiene un
-% objeto que niega uno de esos colores.
 extension_de_propiedad(KB, Prop, Objetos) :-
     objetos_con_propiedad(KB, Prop, ObjsProp),
     objetos_de_clase_con_propiedad(KB, Prop, ObjsCls),
     append(ObjsProp, ObjsCls, ObjsMerge),
-    rem_dups(ObjsMerge, Objetos).
-
-/*
- * Sugar function para definir una función identidad.
- */
-identidad(X, X).
-
-/*
- * Dado el nombre de una propiedad y una lista de propiedades, obtiene
- * la propiedad completa.
- */
-obten_propiedad(_, [], _) :- fail.
-obten_propiedad(not(Prop=>Valor), _, not(Prop=>Valor)) :- !.
-obten_propiedad(not(Prop), [not(Prop=>Valor)|_], not(Prop=>Valor)) :- !.
-obten_propiedad(not(Prop), [not(Prop)|_], not(Prop)) :- !.
-obten_propiedad(not(Prop), [_|OtrasProps], P) :- obten_propiedad(not(Prop), OtrasProps, P).
-obten_propiedad(Prop=>Valor, _, Prop=>Valor) :- !.
-obten_propiedad(Prop, [Prop=>Valor|_], Prop=>Valor) :- !.
-obten_propiedad(Prop, [Prop|_], Prop) :- !.
-obten_propiedad(Prop, [_|OtrasProps], P) :- obten_propiedad(Prop, OtrasProps, P).
-
+    elimina_obj_dup(ObjsMerge, Objetos).
 
 /*
  * Dada una lista de objetos y una propiedad, construye una lista con
