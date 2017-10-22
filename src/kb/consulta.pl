@@ -169,15 +169,6 @@ clases_de_objeto(KB, Objeto, Clases) :-
     append([Clase], SuperClases, Clases).
 
 /*
- * Dada una lista de clases, extrae sus propiedades y las concatena en
- * una lista.
- */
-obten_propiedades_de_clases([], []) :- !.
-obten_propiedades_de_clases([clase(_, _, Props, _, _)|OtrasClases], Propiedades) :-
-    obten_propiedades_de_clases(OtrasClases, OtrasPropiedades),
-    append(Props, OtrasPropiedades, Propiedades).
-
-/*
  * Elimina las propiedades negadas.
  * ?- elimina_negaciones([color=>blanco, not(color=>rojo), bonita, color=>udf, not(movil), not(color=>blanco)], X).
  */
@@ -196,10 +187,8 @@ elimina_negaciones([P|O], Res) :-
  * ?- kb(KB), propiedades_de_objeto(KB, r3, Props).
  */
 propiedades_de_objeto(KB, Objeto, Propiedades) :-
-    obten_objeto(KB, Objeto, objeto(_, _, Props, _)),
-    clases_de_objeto(KB, Objeto, SCls),
-    obten_clases(KB, SCls, ClsComp),
-    obten_propiedades_de_clases(ClsComp, ClsProps),
+    obten_objeto(KB, Objeto, objeto(_, Clase, Props, _)),
+    propiedades_de_clase(KB, Clase, ClsProps),
     append(Props, ClsProps, PropsFin),
     elimina_negaciones(PropsFin, Propiedades).
 
@@ -434,7 +423,7 @@ propiedades_de_clases(KB, [SuperClase|SuperClases], Propiedades) :-
  * Obtiene la lista de propiedades de una clase, ya sea por
  * declaración o por herencia.
  */
-obten_propiedades_de_clase(KB, Clase, Propiedades) :-
+propiedades_de_clase(KB, Clase, Propiedades) :-
     obten_clase(KB, Clase, clase(Clase, _, Props, _, _)),
     superclases(KB, Clase, SuperClases),
     propiedades_de_clases(KB, SuperClases, PropsSup),
@@ -448,7 +437,7 @@ obten_propiedades_de_clase(KB, Clase, Propiedades) :-
  */
 nombre_de_objeto_con_propiedad(_, [], _, []) :- !.
 nombre_de_objeto_con_propiedad(KB, [objeto(Nombre, Clase, Props, _)|OtrosObjs],Prop,[Resultado|OtrosRes]) :-
-    (obten_propiedad(Prop, Props, Val); (obten_propiedades_de_clase(KB, Clase, Propiedades),
+    (obten_propiedad(Prop, Props, Val); (propiedades_de_clase(KB, Clase, Propiedades),
                                          obten_propiedad(Prop, Propiedades, Val))),
     identidad(Nombre=>(Val), Resultado),
     nombre_de_objeto_con_propiedad(KB, OtrosObjs, Prop, OtrosRes).
