@@ -200,7 +200,7 @@ propiedades_de_objeto(KB, Objeto, Propiedades) :-
     obten_clases(KB, SCls, ClsComp),
     obten_propiedades_de_clases(ClsComp, ClsProps),
     append(Props, ClsProps, PropsFin),
-    e_n(PropsFin, Propiedades).
+    elimina_negaciones(PropsFin, Propiedades).
 
 /*
  * Obtiene los objetos de una lista de clases.
