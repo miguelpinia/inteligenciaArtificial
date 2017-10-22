@@ -15,7 +15,7 @@ kb([clase(top, none, [], [], []),
     clase(gato, animal, [felino], [huye=>[perro]], []),
     clase(vegetal,top,	[not(movil), not(color=>negro)], [], []),
     clase(girasol,vegetal, [movil, color=>[amarillo, rojo]],[], [gira1, gira2]),
-    objeto(gira1,girasol,[color=>rojo,alias=>[rojito,chulote]],[]),
+    objeto(gira1,girasol,[color=>rojo,not(color=>amarillo),alias=>[rojito,chulote]],[]),
     objeto(gira2,girasol,[alias=>[udf]],[]),
     clase(rosa, vegetal, [bonita,color=>udf], [], [r1,r2,r3]),
     objeto(r1,rosa,[color=>rojo],[]),
@@ -193,6 +193,7 @@ prop_negada(Prop, not(Prop)).
 obten_propiedad_completa(_, [], _) :- fail.
 obten_propiedad_completa(Prop, [Prop=>Valor|_], Prop=>Valor) :- !.
 obten_propiedad_completa(not(Prop), [not(Prop=>Valor)|_], not(Prop=>Valor)) :- !.
+obten_propiedad_completa(Prop, [Prop|_], Prop) :- !.
 obten_propiedad_completa(Prop, [_|Props], X) :- obten_propiedad_completa(Prop, Props, X).
 
 /*
@@ -334,11 +335,60 @@ objetos_de_clase_con_propiedad(KB, Prop, Objetos) :-
  * %?- kb(KB), extension_propiedad(KB, movil, Objetos).
  * %?- kb(KB), extension_propiedad(KB, not(movil), Objetos).
  */
+% FIXME: Arreglar el caso esquinado de la extensión de propiedad, la
+% cual no debería de mostrar objetos que tienen negaciones
+% particulares de una lista de valores de propiedad. Por ejemplo, el
+% caso de la clase girasol que tiene multiples colores y tiene un
+% objeto que niega uno de esos colores.
 extension_de_propiedad(KB, Prop, Objetos) :-
     objetos_con_propiedad(KB, Prop, ObjsProp),
     objetos_de_clase_con_propiedad(KB, Prop, ObjsCls),
     append(ObjsProp, ObjsCls, ObjsMerge),
     rem_dups(ObjsMerge, Objetos).
+
+/*
+ * Sugar function para definir una función identidad.
+ */
+identidad(X, X).
+
+/*
+ * Dado el nombre de una propiedad y una lista de propiedades, obtiene
+ * la propiedad completa.
+ */
+obten_propiedad(_, [], _) :- fail.
+obten_propiedad(not(Prop=>Valor), _, not(Prop=>Valor)) :- !.
+obten_propiedad(not(Prop), [not(Prop=>Valor)|_], not(Prop=>Valor)) :- !.
+obten_propiedad(not(Prop), [not(Prop)|_], not(Prop)) :- !.
+obten_propiedad(not(Prop), [_|OtrasProps], P) :- obten_propiedad(not(Prop), OtrasProps, P).
+obten_propiedad(Prop=>Valor, _, Prop=>Valor) :- !.
+obten_propiedad(Prop, [Prop=>Valor|_], Prop=>Valor) :- !.
+obten_propiedad(Prop, [Prop|_], Prop) :- !.
+obten_propiedad(Prop, [_|OtrasProps], P) :- obten_propiedad(Prop, OtrasProps, P).
+
+obten_propiedades_de_clase(KB, Clase, Propiedades) :-
+    obten_clase(KB, Clase, clase(Clase, _, Propiedades, _, _)), !.
+
+/*
+ * Dada una lista de objetos y una propiedad, construye una lista con
+ * el nombre y la propiedad.
+ */
+nombre_de_objeto_con_propiedad(_, [], _, []) :- !.
+nombre_de_objeto_con_propiedad(KB, [objeto(Nombre, Clase, Props, _)|OtrosObjs],Prop,[Resultado|OtrosRes]) :-
+    (obten_propiedad(Prop, Props, Val); (obten_propiedades_de_clase(KB, Clase, Propiedades),
+                                         obten_propiedad(Prop, Propiedades, Val))),
+    identidad(Nombre=>(Val), Resultado),
+    nombre_de_objeto_con_propiedad(KB, OtrosObjs, Prop, OtrosRes).
+
+/*
+ * Imprime de forma "bonita" la extensión de una propiedad.
+ * ?- kb(KB), pprint_extension_de_propiedad(KB, color=>amarillo, Objs).
+ * kb(KB), pprint_extension_de_propiedad(KB, color, Objs).
+ * kb(KB), pprint_extension_de_propiedad(KB, color=>rojo, Objs).
+ * kb(KB), pprint_extension_de_propiedad(KB, color=>[amarillo, rojo], Objs). <- gira1 no debería aparecer.
+ */
+pprint_extension_de_propiedad(KB, Prop, Objetos) :-
+    extension_de_propiedad(KB, Prop, ObjsComp),
+    nombre_de_objeto_con_propiedad(KB, ObjsComp, Prop, Objetos).
 
 /*
  * Dada una propiedad, obtiene el nombre de todos los objetos que
