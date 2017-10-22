@@ -151,6 +151,17 @@ superclases(KB, Clase, SuperClases) :-
     superclases(KB, Padre, SCls),
     append([Padre], SCls, SuperClases).
 
+/*
+ * Obtiene la lista de clases de un objeto.
+ */
+clases_de_objeto(KB, Objeto, Clases) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, _, _)),
+    superclases(KB, Clase, SuperClases),
+    append([Clase], SuperClases, Clases).
+
+/*
+ * Obtiene los objetos de una lista de clases.
+ */
 ext_clase(_, [], []) :- !.
 ext_clase(KB, [Clase|Clases], Objetos) :-
     objetos_de_clase(KB, Clase, Objs),
