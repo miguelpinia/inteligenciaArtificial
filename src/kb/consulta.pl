@@ -193,6 +193,7 @@ elimina_negaciones([P|O], Res) :-
 
 /*
  * Obtiene una lista de las propiedades que tiene un objeto.
+ * ?- kb(KB), propiedades_de_objeto(KB, r3, Props).
  */
 propiedades_de_objeto(KB, Objeto, Propiedades) :-
     obten_objeto(KB, Objeto, objeto(_, _, Props, _)),
@@ -419,8 +420,27 @@ obten_propiedad(Prop, [Prop=>Valor|_], Prop=>Valor) :- !.
 obten_propiedad(Prop, [Prop|_], Prop) :- !.
 obten_propiedad(Prop, [_|OtrasProps], P) :- obten_propiedad(Prop, OtrasProps, P).
 
+
+/*
+ * Obtiene las propiedades de una lista de clases.
+ */
+propiedades_de_clases(_, [], []) :- !.
+propiedades_de_clases(KB, [SuperClase|SuperClases], Propiedades) :-
+    obten_clase(KB, SuperClase, clase(SuperClase, _, Props, _, _)),
+    propiedades_de_clases(KB, SuperClases, PropsSup),
+    append(Props, PropsSup, Propiedades).
+
+/*
+ * Obtiene la lista de propiedades de una clase, ya sea por
+ * declaración o por herencia.
+ */
 obten_propiedades_de_clase(KB, Clase, Propiedades) :-
-    obten_clase(KB, Clase, clase(Clase, _, Propiedades, _, _)), !.
+    obten_clase(KB, Clase, clase(Clase, _, Props, _, _)),
+    superclases(KB, Clase, SuperClases),
+    propiedades_de_clases(KB, SuperClases, PropsSup),
+    append(Props, PropsSup, PropsF),
+    elimina_negaciones(PropsF, Propiedades),
+    !.
 
 /*
  * Dada una lista de objetos y una propiedad, construye una lista con
@@ -439,6 +459,10 @@ nombre_de_objeto_con_propiedad(KB, [objeto(Nombre, Clase, Props, _)|OtrosObjs],P
  * kb(KB), pprint_extension_de_propiedad(KB, color, Objs).
  * kb(KB), pprint_extension_de_propiedad(KB, color=>rojo, Objs).
  * kb(KB), pprint_extension_de_propiedad(KB, color=>[amarillo, rojo], Objs). <- gira1 no debería aparecer.
+ * kb(KB), pprint_extension_de_propiedad(KB, not(movil), Objs).
+ * kb(KB), pprint_extension_de_propiedad(KB, movil, Objs).
+ * kb(KB), pprint_extension_de_propiedad(KB, canino, Objs).
+ * kb(KB), pprint_extension_de_propiedad(KB, nono, Objs).
  */
 pprint_extension_de_propiedad(KB, Prop, Objetos) :-
     extension_de_propiedad(KB, Prop, ObjsComp),
