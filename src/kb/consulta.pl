@@ -169,6 +169,54 @@ clases_de_objeto(KB, Objeto, Clases) :-
     append([Clase], SuperClases, Clases).
 
 /*
+ * Obtiene los objetos de una lista de clases.
+ */
+ext_clase(_, [], []) :- !.
+ext_clase(KB, [Clase|Clases], Objetos) :-
+    objetos_de_clase(KB, Clase, Objs),
+    ext_clase(KB, Clases, RestObjs),
+    append(Objs, RestObjs, Objetos).
+
+/*
+ * Obtiene la extensión de la clase Clase.
+ * %?-kb(KB), extension_de_clase(KB, top, Objetos).
+ */
+extension_de_clase(KB, Clase, Objetos) :-
+    subclases(KB, Clase, SubClases),
+    append([Clase], SubClases, SCls),
+    ext_clase(KB, SCls, Objs),
+    nombre_objetos(Objs, Objetos).
+
+/*
+ * Obtiene la identidad de una propiedad.
+ * %?- prop_identidad(not(not(movil)), Prop).
+ * %?- prop_identidad(not(movil), Prop).
+ * %?- prop_identidad(movil, Prop).
+ */
+prop_identidad(not(not(Prop)), Prop) :- !.
+prop_identidad(Prop, Prop).
+
+/*
+ * Obtiene la propiedad negada de una propiedad.
+ * %?- prop_negada(movil, Prop).
+ * %?- prop_negada(not(movil), Prop).
+ * %?- prop_negada(not(not(movil)), Prop).
+ */
+prop_negada(not(Prop), Prop) :- !.
+prop_negada(Prop, not(Prop)).
+
+/*
+ * Obtiene una propiedad con su valor a partir de su nombre.
+ * %?- obten_propiedad_completa(alias, [color=>rojo,alias=>[rojito,chulote]], Prop).
+ * %?- obten_propiedad_completa(not(color), [not(movil), not(color=>negro)], Prop).
+ */
+obten_propiedad_completa(_, [], _) :- fail.
+obten_propiedad_completa(Prop, [Prop=>Valor|_], Prop=>Valor) :- !.
+obten_propiedad_completa(not(Prop), [not(Prop=>Valor)|_], not(Prop=>Valor)) :- !.
+obten_propiedad_completa(Prop, [Prop|_], Prop) :- !.
+obten_propiedad_completa(Prop, [_|Props], X) :- obten_propiedad_completa(Prop, Props, X).
+
+/*
  * Para el caso cuando hay una lista de valores con tamaño mayor a 1,
  * elimina el valor de la lista.
  * ?- elimina_de_valores_de_propiedad(alias=>rojito, alias=>[rojito,chulote], R).
@@ -243,7 +291,36 @@ elimina_propiedades_negadas([P|O], Res) :-
     append([P], R, Res).
 
 /*
+ * Obtiene las propiedades de una lista de clases.
+ */
+propiedades_de_clases(_, [], []) :- !.
+propiedades_de_clases(KB, [Clase|Clases], Propiedades) :-
+    obten_clase(KB, Clase, clase(Clase, _, Props, _, _)),
+    propiedades_de_clases(KB, Clases, PropsSup),
+    append(Props, PropsSup, Propiedades).
+
+/*
+ * Obtiene la lista de propiedades de una clase, ya sea por
+ * declaración o por herencia.
+ * ?- kb(KB), propiedades_de_clase(KB, girasol, Props).
+ * ?- kb(KB), propiedades_de_clase(KB, vegetal, Props).
+ * ?- kb(KB), propiedades_de_clase(KB, rosa, Props).
+ */
+propiedades_de_clase(KB, Clase, Propiedades) :-
+    obten_clase(KB, Clase, clase(Clase, _, Props, _, _)),
+    superclases(KB, Clase, SuperClases),
+    propiedades_de_clases(KB, SuperClases, PropsSup),
+    append(Props, PropsSup, PropsF),
+    elimina_propiedades_negadas(PropsF, Propiedades),
+    !.
+
+/*
  * Obtiene una lista de las propiedades que tiene un objeto.
+ * ?- kb(KB), propiedades_de_objeto(KB, r3, Props).
+ * ?- kb(KB), propiedades_de_objeto(KB, gira2, Props).
+ * ?- kb(KB), propiedades_de_objeto(KB, gira1, Props).
+ * ?- kb(KB), propiedades_de_objeto(KB, r1, Props).
+ * ?- kb(KB), propiedades_de_objeto(KB, r2, Props).
  * ?- kb(KB), propiedades_de_objeto(KB, r3, Props).
  */
 propiedades_de_objeto(KB, Objeto, Propiedades) :-
@@ -251,54 +328,6 @@ propiedades_de_objeto(KB, Objeto, Propiedades) :-
     propiedades_de_clase(KB, Clase, ClsProps),
     append(Props, ClsProps, PropsFin),
     elimina_propiedades_negadas(PropsFin, Propiedades).
-
-/*
- * Obtiene los objetos de una lista de clases.
- */
-ext_clase(_, [], []) :- !.
-ext_clase(KB, [Clase|Clases], Objetos) :-
-    objetos_de_clase(KB, Clase, Objs),
-    ext_clase(KB, Clases, RestObjs),
-    append(Objs, RestObjs, Objetos).
-
-/*
- * Obtiene la extensión de la clase Clase.
- * %?-kb(KB), extension_de_clase(KB, top, Objetos).
- */
-extension_de_clase(KB, Clase, Objetos) :-
-    subclases(KB, Clase, SubClases),
-    append([Clase], SubClases, SCls),
-    ext_clase(KB, SCls, Objs),
-    nombre_objetos(Objs, Objetos).
-
-/*
- * Obtiene la identidad de una propiedad.
- * %?- prop_identidad(not(not(movil)), Prop).
- * %?- prop_identidad(not(movil), Prop).
- * %?- prop_identidad(movil, Prop).
- */
-prop_identidad(not(not(Prop)), Prop) :- !.
-prop_identidad(Prop, Prop).
-
-/*
- * Obtiene la propiedad negada de una propiedad.
- * %?- prop_negada(movil, Prop).
- * %?- prop_negada(not(movil), Prop).
- * %?- prop_negada(not(not(movil)), Prop).
- */
-prop_negada(not(Prop), Prop) :- !.
-prop_negada(Prop, not(Prop)).
-
-/*
- * Obtiene una propiedad con su valor a partir de su nombre.
- * %?- obten_propiedad_completa(alias, [color=>rojo,alias=>[rojito,chulote]], Prop).
- * %?- obten_propiedad_completa(not(color), [not(movil), not(color=>negro)], Prop).
- */
-obten_propiedad_completa(_, [], _) :- fail.
-obten_propiedad_completa(Prop, [Prop=>Valor|_], Prop=>Valor) :- !.
-obten_propiedad_completa(not(Prop), [not(Prop=>Valor)|_], not(Prop=>Valor)) :- !.
-obten_propiedad_completa(Prop, [Prop|_], Prop) :- !.
-obten_propiedad_completa(Prop, [_|Props], X) :- obten_propiedad_completa(Prop, Props, X).
 
 /*
  *
@@ -469,27 +498,6 @@ obten_propiedad(Prop, [Prop=>Valor|_], Prop=>Valor) :- !.
 obten_propiedad(Prop, [Prop|_], Prop) :- !.
 obten_propiedad(Prop, [_|OtrasProps], P) :- obten_propiedad(Prop, OtrasProps, P).
 
-
-/*
- * Obtiene las propiedades de una lista de clases.
- */
-propiedades_de_clases(_, [], []) :- !.
-propiedades_de_clases(KB, [SuperClase|SuperClases], Propiedades) :-
-    obten_clase(KB, SuperClase, clase(SuperClase, _, Props, _, _)),
-    propiedades_de_clases(KB, SuperClases, PropsSup),
-    append(Props, PropsSup, Propiedades).
-
-/*
- * Obtiene la lista de propiedades de una clase, ya sea por
- * declaración o por herencia.
- */
-propiedades_de_clase(KB, Clase, Propiedades) :-
-    obten_clase(KB, Clase, clase(Clase, _, Props, _, _)),
-    superclases(KB, Clase, SuperClases),
-    propiedades_de_clases(KB, SuperClases, PropsSup),
-    append(Props, PropsSup, PropsF),
-    elimina_propiedades_negadas(PropsF, Propiedades),
-    !.
 
 /*
  * Dada una lista de objetos y una propiedad, construye una lista con
