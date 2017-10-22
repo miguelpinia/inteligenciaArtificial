@@ -169,14 +169,65 @@ clases_de_objeto(KB, Objeto, Clases) :-
     append([Clase], SuperClases, Clases).
 
 /*
- * Elimina las propiedades negadas.
- * ?- elimina_negaciones([color=>blanco, not(color=>rojo), bonita, color=>udf, not(movil), not(color=>blanco)], X).
+ * Para el caso cuando hay una lista de valores con tamaño mayor a 1,
+ * elimina el valor de la lista.
+ * ?- elimina_de_valores_de_propiedad(alias=>rojito, alias=>[rojito,chulote], R).
+ * ?- elimina_de_valores_de_propiedad(not(color=>negro), not(color=>[amarillo,negro]), R).
+*/
+elimina_de_valores_de_propiedad(not(Prop=>Valor), not(Prop=>Valores), Resultado) :-
+    member(Valor, Valores),
+    select(Valor, Valores, Res),
+    identidad(not(Prop=>Res), Resultado).
+elimina_de_valores_de_propiedad(Prop=>Valor, Prop=>Valores, Resultado) :-
+    member(Valor, Valores),
+    select(Valor, Valores, Res),
+    identidad(Prop=>Res, Resultado), !.
+
+/*
+ * Dada una lista, reemplaza, el elemento X, por el elemento Y, y
+ * devuelve la lista con el elemento reemplazado.
  */
-% FIXME: Hay que agregar la eliminación que permita eliminar valores
-% que están negados dentro de una lista. Es el mismo caso que cuando
-% se calculan la extensión de una propiedad.
-elimina_negaciones([], []) :- !.
-elimina_negaciones([P|O], Res) :-
+reemplaza([],_,_,[]):-!.
+reemplaza([X|Resto],X,Y,[Y|RestoReemplazado]):-
+	!,
+	reemplaza(Resto,X,Y,RestoReemplazado).
+reemplaza([W|Resto],X,Y,[W|RestoReemplazado]):-
+	!,
+	reemplaza(Resto,X,Y,RestoReemplazado).
+
+/*
+ * Dada una propiedad con su valor y una lista de propiedades, elimina
+ * la propiedad de la lista de propiedades y devuelve el resultado de
+ * la eliminación.
+ * ?- elimina_propiedad_de_propiedades(alias=>rojito, [color=>rojo,not(color=>[amarillo, negro]),alias=>[rojito,chulote]], R).
+ * ?- elimina_propiedad_de_propiedades(color=>rojo, [color=>rojo,not(color=>[amarillo, negro]),alias=>[rojito,chulote]], R).
+ * ?- elimina_propiedad_de_propiedades(not(color=>amarillo), [color=>rojo,not(color=>[amarillo, negro]),alias=>[rojito,chulote]], R).
+ * ?- elimina_propiedad_de_propiedades(not(color=>amarillo), [color=>rojo,not(color=>[amarillo]),alias=>[rojito,chulote]], R).
+ * ?- elimina_propiedad_de_propiedades(movil, [movil, color=>rojo,not(color=>[amarillo]),alias=>[rojito,chulote]], R).
+ * ?- elimina_propiedad_de_propiedades(movil, [movil, color=>rojo,not(color=>[amarillo]),alias=>[rojito,chulote]], R).
+ * ?- elimina_propiedad_de_propiedades(not(movil), [not(movil), color=>rojo,not(color=>[amarillo]),alias=>[rojito,chulote]], R).
+ */
+elimina_propiedad_de_propiedades(not(Prop=>Valor), Props, Resultado) :-
+    (member(not(Prop=>Valor), Props),
+     select(not(Prop=>Valor), Props, Resultado));
+    (member(not(Prop=>[Valor]), Props),
+     select(not(Prop=>[Valor]), Props, Resultado));
+    (obten_propiedad_completa(not(Prop), Props, PropFound),
+     elimina_de_valores_de_propiedad(not(Prop=>Valor), PropFound, PropMod),
+     reemplaza(Props, PropFound, PropMod, Resultado)).
+elimina_propiedad_de_propiedades(Prop=>Valor, Props, Resultado) :-
+    (member(Prop=>Valor, Props),
+     select(Prop=>Valor, Props, Resultado));
+    (member(Prop=>[Valor], Props),
+     select(Prop=>[Valor], Props, Resultado));
+    (obten_propiedad_completa(Prop, Props, PropFound),
+     elimina_de_valores_de_propiedad(Prop=>Valor, PropFound, PropMod),
+     reemplaza(Props, PropFound, PropMod, Resultado)).
+elimina_propiedad_de_propiedades(not(Prop), Props, Resultado) :-
+    member(not(Prop), Props), select(not(Prop), Props, Resultado).
+elimina_propiedad_de_propiedades(Prop, Props, Resultado) :-
+    member(Prop, Props), select(Prop, Props, Resultado).
+
     prop_negada(P, NotP),
     (select(NotP, O, Os); identidad(O, Os)),
     elimina_negaciones(Os, R),
