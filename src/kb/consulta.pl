@@ -228,9 +228,18 @@ elimina_propiedad_de_propiedades(not(Prop), Props, Resultado) :-
 elimina_propiedad_de_propiedades(Prop, Props, Resultado) :-
     member(Prop, Props), select(Prop, Props, Resultado).
 
+/*
+ * Elimina las propiedades negadas, que aparecen después de la
+ * declaración de una propiedad.
+ * ?- elimina_propiedades_negadas([color=>blanco, not(color=>rojo), bonita, color=>udf, not(movil), not(color=>[blanco])], X).
+ * ?- elimina_propiedades_negadas([color=>blanco, not(color=>rojo), bonita, not(movil), not(color=>[blanco]), color=>[rojo, azul]], X).
+ * ?- elimina_propiedades_negadas([movil, color=>blanco, not(color=>rojo), bonita, not(movil), not(color=>[blanco]), color=>[rojo, azul]], X).
+ */
+elimina_propiedades_negadas([], []) :- !.
+elimina_propiedades_negadas([P|O], Res) :-
     prop_negada(P, NotP),
-    (select(NotP, O, Os); identidad(O, Os)),
-    elimina_negaciones(Os, R),
+    (elimina_propiedad_de_propiedades(NotP, O, Os); identidad(O, Os)),
+    elimina_propiedades_negadas(Os, R),
     append([P], R, Res).
 
 /*
@@ -241,7 +250,7 @@ propiedades_de_objeto(KB, Objeto, Propiedades) :-
     obten_objeto(KB, Objeto, objeto(_, Clase, Props, _)),
     propiedades_de_clase(KB, Clase, ClsProps),
     append(Props, ClsProps, PropsFin),
-    elimina_negaciones(PropsFin, Propiedades).
+    elimina_propiedades_negadas(PropsFin, Propiedades).
 
 /*
  * Obtiene los objetos de una lista de clases.
@@ -479,7 +488,7 @@ propiedades_de_clase(KB, Clase, Propiedades) :-
     superclases(KB, Clase, SuperClases),
     propiedades_de_clases(KB, SuperClases, PropsSup),
     append(Props, PropsSup, PropsF),
-    elimina_negaciones(PropsF, Propiedades),
+    elimina_propiedades_negadas(PropsF, Propiedades),
     !.
 
 /*
