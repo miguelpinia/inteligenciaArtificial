@@ -20,7 +20,7 @@ kb([clase(top, none, [], [], []),
     clase(rosa, vegetal, [bonita,color=>udf], [], [r1,r2,r3]),
     objeto(r1,rosa,[color=>rojo],[]),
     objeto(r2,rosa,[movil],[]),
-    objeto(r3,rosa,[color=>blanco, not(color=>rojo)],[])]).
+    objeto(r3,rosa,[color=>blanco, not(color=>rojo), not(bonita)],[])]).
 
 /*
  * Obtiene la cabeza de una lista.
@@ -37,6 +37,15 @@ obten_clase(KB, Nombre, Clase) :-
             member(clase(Nombre, Padre, Preds, Rels, Objs), KB), L),
     cabeza(L, Clase).
 
+/*
+ * Obtiene una lista de functores asociados a la lista de nombres de
+ * clase.
+ */
+obten_clases(_, [], []) :- !.
+obten_clases(KB, [Clase|Clases], ClasesComp) :-
+    obten_clase(KB, Clase, Cls),
+    obten_clases(KB, Clases, OtherCls),
+    append([Cls], OtherCls, ClasesComp).
 
 /*
  * Obtiene el functor de objeto asociado al nombre Nombre.
@@ -158,6 +167,40 @@ clases_de_objeto(KB, Objeto, Clases) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, _, _)),
     superclases(KB, Clase, SuperClases),
     append([Clase], SuperClases, Clases).
+
+/*
+ * Dada una lista de clases, extrae sus propiedades y las concatena en
+ * una lista.
+ */
+obten_propiedades_de_clases([], []) :- !.
+obten_propiedades_de_clases([clase(_, _, Props, _, _)|OtrasClases], Propiedades) :-
+    obten_propiedades_de_clases(OtrasClases, OtrasPropiedades),
+    append(Props, OtrasPropiedades, Propiedades).
+
+/*
+ * Elimina las propiedades negadas.
+ * ?- elimina_negaciones([color=>blanco, not(color=>rojo), bonita, color=>udf, not(movil), not(color=>blanco)], X).
+ */
+% FIXME: Hay que agregar la eliminación que permita eliminar valores
+% que están negados dentro de una lista. Es el mismo caso que cuando
+% se calculan la extensión de una propiedad.
+elimina_negaciones([], []) :- !.
+elimina_negaciones([P|O], Res) :-
+    prop_negada(P, NotP),
+    (select(NotP, O, Os); identidad(O, Os)),
+    elimina_negaciones(Os, R),
+    append([P], R, Res).
+
+/*
+ * Obtiene una lista de las propiedades que tiene un objeto.
+ */
+propiedades_de_objeto(KB, Objeto, Propiedades) :-
+    obten_objeto(KB, Objeto, objeto(_, _, Props, _)),
+    clases_de_objeto(KB, Objeto, SCls),
+    obten_clases(KB, SCls, ClsComp),
+    obten_propiedades_de_clases(ClsComp, ClsProps),
+    append(Props, ClsProps, PropsFin),
+    e_n(PropsFin, Propiedades).
 
 /*
  * Obtiene los objetos de una lista de clases.
