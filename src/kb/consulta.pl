@@ -6,6 +6,10 @@
  * - clases_de_objeto(KB, Objeto, Clases)
  * - propiedades_de_objeto(KB, Objeto, Propiedades)
  * - propiedades_de_clase(KB, Clase, Propiedades) ? renombrar?
+ * - extension_de_relacion(KB, Rel, Objetos)
+ *   - pprint_extension_de_relacion(KB, Rel, Objetos)
+ * - relaciones_de_objeto(KB, Objeto, Relaciones)
+ * - relaciones_de_clase(KB, Clase, Relaciones)
  */
 
 /*
@@ -20,18 +24,17 @@
 kb([clase(top, none, [], [], []),
     clase(animal, top, [movil], [], []),
     clase(perro, animal, [canino], [odia=>[gato]], [abc, def]),
-    objeto(abc, perro, [agresivo, alias=>[diablo]], [muerde=>[def]]),
+    objeto(abc, perro, [agresivo, alias=>[diablo]], [muerde=>[r1, r2], huele=>[r3], ama=>[def]]),
     objeto(def, perro, [not(agresivo), alias=>[fido, bueno]], [not(odia=>[gato]), odia=>[ardilla]]),
     clase(gato, animal, [felino], [huye=>[perro]], []),
-    clase(vegetal,top,	[not(movil), not(color=>negro)], [], []),
-    clase(girasol,vegetal, [movil, color=>[amarillo, rojo]],[], [gira1, gira2]),
-    objeto(gira1,girasol,[color=>rojo,not(color=>amarillo),alias=>[rojito,chulote]],[]),
+    clase(vegetal,top,	[not(movil), not(color=>negro)], [es_comida_por=>[animal], olida_por=>[perro]], []),
+    clase(girasol,vegetal, [movil, color=>[amarillo, rojo]],[not(es_comida_por=>[animal])], [gira1, gira2]),
+    objeto(gira1,girasol,[color=>rojo,not(color=>amarillo),alias=>[rojito,chulote]],[mas_bella_que=>[gira2, r2]]),
     objeto(gira2,girasol,[alias=>[udf]],[]),
-    clase(rosa, vegetal, [bonita,color=>udf], [], [r1,r2,r3]),
+    clase(rosa, vegetal, [bonita,color=>udf], [mas_bella_que=>[girasol]], [r1,r2,r3]),
     objeto(r1,rosa,[color=>rojo],[]),
     objeto(r2,rosa,[movil],[]),
-    objeto(r3,rosa,[color=>blanco, not(color=>rojo), not(bonita)],[])]).
-
+    objeto(r3,rosa,[color=>blanco, not(color=>rojo), not(bonita)],[odiada_por=>[r1]])]).
 /*
  * Obtiene la cabeza de una lista.
  */
@@ -554,4 +557,293 @@ pprint_extension_de_propiedad(KB, Prop, Objetos) :-
  */
 extension_de_propiedad_nombres(KB, Prop, NombreObjetos) :-
     extension_de_propiedad(KB, Prop, Objetos),
+    nombre_objetos(Objetos, NombreObjetos).
+
+/*
+ * Obtiene la identidad de una relacion.
+ * %?- rel_identidad(not(not(odia=>[gato])), Id).
+ * %?- rel_identidad(not(odia=>[gato]), Id).
+ * %?- rel_identidad(odia=>[gato], Id).
+ */
+rel_identidad(not(not(Relacion)), Relacion) :- !.
+rel_identidad(Relacion, Relacion).
+
+/*
+ * Obtiene la negación de una relación dada.
+ * %?- rel_negada(not(not(odia=>[gato])), Neg).
+ * %?- rel_negada(not(odia=>[gato]), Neg).
+ * %?- rel_negada(odia=>[gato], Neg).
+ */
+rel_negada(not(Relacion), Relacion) :- !.
+rel_negada(Relacion, not(Relacion)).
+
+/*
+ * Obtiene una relacion con su valor a partir de su nombre de una
+ * lista de relaciones.
+ * %?- obten_relacion_completa(muerde,[muerde=>[r1, r2], huele=>[r3], ama=>[def]], R).
+ * %?- obten_relacion_completa(not(ama),[muerde=>[r1, r2], huele=>[r3], ama=>[def], not(ama=>[r1])], R).
+ * %?- obten_relacion_completa(foo,[muerde=>[r1, r2], huele=>[r3], ama=>[def], not(ama=>[r1])], R). <- falla
+ */
+obten_relacion_completa(_, [], _) :- fail.
+obten_relacion_completa(not(Relacion), [not(Relacion=>Val)|_], not(Relacion=>Val)) :- !.
+obten_relacion_completa(Relacion, [Relacion=>Val|_], Relacion=>Val) :- !.
+obten_relacion_completa(Relacion, [_|Relaciones], Res) :- obten_relacion_completa(Relacion, Relaciones, Res).
+
+
+/*
+ * Dado el nombre de una relación y una lista de relaciones, obtiene
+ * la relación completa.
+ * %?- obten_relacion(muerde,[muerde=>[r1, r2], huele=>[r3], ama=>[def], not(ama=>[r1])], R).
+ * %?- obten_relacion(not(ama),[muerde=>[r1, r2], huele=>[r3], ama=>[def], not(ama=>[r1])], R).
+ */
+obten_relacion(_, [], _) :- fail.
+obten_relacion(not(Rel=>Val), _, not(Rel=>Val)) :- !.
+obten_relacion(not(Rel), [not(Rel=>Val)|_], not(Rel=>Val)) :- !.
+obten_relacion(not(Rel), [_|OtrasRels], R) :- obten_relacion(not(Rel), OtrasRels, R).
+obten_relacion(Rel=>Valor, _, Rel=>Valor) :- !.
+obten_relacion(Rel, [Rel=>Valor|_], Rel=>Valor) :- !.
+obten_relacion(Rel, [_|OtrasRels], R) :- obten_relacion(Rel, OtrasRels, R).
+
+/*
+ * Para el caso cuando hay una lista de valores con tamaño mayor a 1,
+ * elimina el valor de la lista.
+ * elimina_de_valores_de_relacion(muerde=>r1,muerde=>[r1, r2], R).
+ * elimina_de_valores_de_relacion(not(muerde=>r1),not(muerde=>[r1, r2]), R).
+ */
+elimina_de_valores_de_relacion(not(Rel=>[Val]), not(Rel=>Vals), Resultado) :-
+    member(Val, Vals),
+    select(Val, Vals, Res),
+    identidad(not(Rel=>Res), Resultado).
+elimina_de_valores_de_relacion(not(Rel=>Val), not(Rel=>Vals), Resultado) :-
+    member(Val, Vals),
+    select(Val, Vals, Res),
+    identidad(not(Rel=>Res), Resultado).
+elimina_de_valores_de_relacion(Rel=>[Val], Rel=>Vals, Resultado) :-
+    member(Val, Vals),
+    select(Val, Vals, Res),
+    identidad(Rel=>Res, Resultado), !.
+elimina_de_valores_de_relacion(Rel=>Val, Rel=>Vals, Resultado) :-
+    member(Val, Vals),
+    select(Val, Vals, Res),
+    identidad(Rel=>Res, Resultado), !.
+
+
+/*
+ * Dada una relación con su valor y una lista de relaciones, elimina
+ * la relación de la lista de relaciones y devuelve el resultado de
+ * la eliminación.
+ * %?- elimina_relacion_de_relaciones(muerde=>r1,[muerde=>[r1, r2], huele=>[r3], ama=>[def], not(ama=>[r1])], X).
+ * %?- elimina_relacion_de_relaciones(not(ama=>r1),[muerde=>[r1, r2], huele=>[r3], ama=>[def], not(ama=>[r1])], X).
+ */
+elimina_relacion_de_relaciones(not(Rel=>[Val]), Rels, Resultado) :-
+    (member(not(Rel=>Val), Rels),
+     select(not(Rel=>Val), Rels, Resultado));
+    (member(not(Rel=>[Val]), Rels),
+     select(not(Rel=>[Val]), Rels, Resultado));
+    (obten_relacion_completa(not(Rel), Rels, RelFound),
+     elimina_de_valores_de_relacion(not(Rel=>[Val]), RelFound, RelMod),
+     reemplaza(Rels, RelFound, RelMod, Resultado)).
+elimina_relacion_de_relaciones(not(Rel=>Val), Rels, Resultado) :-
+    (member(not(Rel=>Val), Rels),
+     select(not(Rel=>Val), Rels, Resultado));
+    (member(not(Rel=>[Val]), Rels),
+     select(not(Rel=>[Val]), Rels, Resultado));
+    (obten_relacion_completa(not(Rel), Rels, RelFound),
+     elimina_de_valores_de_relacion(not(Rel=>Val), RelFound, RelMod),
+     reemplaza(Rels, RelFound, RelMod, Resultado)).
+elimina_relacion_de_relaciones(Rel=>[Val], Rels, Resultado) :-
+    (member(Rel=>Val, Rels),
+     select(Rel=>Val, Rels, Resultado));
+    (member(Rel=>[Val], Rels),
+     select(Rel=>[Val], Rels, Resultado));
+    (obten_relacion_completa(Rel, Rels, RelFound),
+     elimina_de_valores_de_relacion(Rel=>[Val], RelFound, RelMod),
+     reemplaza(Rels, RelFound, RelMod, Resultado)) .
+elimina_relacion_de_relaciones(Rel=>Val, Rels, Resultado) :-
+    (member(Rel=>Val, Rels),
+     select(Rel=>Val, Rels, Resultado));
+    (member(Rel=>[Val], Rels),
+     select(Rel=>[Val], Rels, Resultado));
+    (obten_relacion_completa(Rel, Rels, RelFound),
+     elimina_de_valores_de_relacion(Rel=>Val, RelFound, RelMod),
+     reemplaza(Rels, RelFound, RelMod, Resultado)) .
+
+/*
+ * Elimina las relaciones negadas, que aparecen después de la
+ * declaración de una relacion.
+ * %?- elimina_relaciones_negadas([muerde=>[r2], huele=>[r3], ama=>[def], not(ama=>[r1]), not(huele=>[r3]), not(muerde=>[r1, r2])], [muerde=>[r2], huele=>[r3], ama=>[def], not(ama=>[r1]), not(muerde=>[r1])]).
+ */
+elimina_relaciones_negadas([], []) :- !.
+elimina_relaciones_negadas([R|O], Resultado) :-
+    rel_negada(R, NotR),
+    (elimina_relacion_de_relaciones(NotR, O, Os); identidad(O, Os)),
+    elimina_relaciones_negadas(Os, Res),
+    append([R], Res, Resultado).
+
+/*
+ * Obtiene las relaciones de una lista de clases.
+ */
+relaciones_de_clases(_, [], []) :- !.
+relaciones_de_clases(KB, [Clase|Clases], Relaciones) :-
+    obten_clase(KB, Clase, clase(Clase, _, _, Rels, _)),
+    relaciones_de_clases(KB, Clases, RelsSup),
+    append(Rels, RelsSup, Relaciones).
+
+/*
+ * Obtiene la lista de relaciones de una clase, ya sea por
+ * declaración o por herencia.
+ * %?- kb(KB), relaciones_de_clase(KB, vegetal, Rels).
+ * %?- kb(KB), relaciones_de_clase(KB, girasol, Rels).
+ */
+relaciones_de_clase(KB, Clase, Relaciones) :-
+    obten_clase(KB, Clase, clase(Clase, _, _, Rels, _)),
+    superclases(KB, Clase, SuperClases),
+    relaciones_de_clases(KB, SuperClases, RelsSup),
+    append(Rels, RelsSup, RelsF),
+    elimina_relaciones_negadas(RelsF, Relaciones),
+    !.
+
+/*
+ * Obtiene una lista de las relaciones que tiene un objeto.
+ * %?- kb(KB), relaciones_de_objeto(KB, r1, Rels).
+ * %?- kb(KB), relaciones_de_objeto(KB, r3, Rels).
+ * %?- kb(KB), relaciones_de_objeto(KB, gira2, Rels).
+ * %?- kb(KB), relaciones_de_objeto(KB, gira1, Rels).
+ */
+relaciones_de_objeto(KB, Objeto, Relaciones) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, _, Rels)),
+    relaciones_de_clase(KB, Clase, ClsRels),
+    append(Rels, ClsRels, RelsFin),
+    elimina_relaciones_negadas(RelsFin, Relaciones).
+
+/*
+ * Verifica si dado el nombre de una relacion y un valor, estos forman
+ * parte de la lista de relaciones.
+ * %?- existe_valor_en_relaciones(muerde, r1, [muerde=>[r1, r2], huele=>[r3], ama=>[def]]).
+ * %?- existe_valor_en_relaciones(muerde, r2, [muerde=>[r1, r2], huele=>[r3], ama=>[def]]).
+ * %?- existe_valor_en_relaciones(not(muerde), r2, [not(muerde=>[r1, r2]), huele=>[r3], ama=>[def]]).
+ * %?- existe_valor_en_relaciones(not(muerde), r, [not(muerde=>[r1, r2]), huele=>[r3], ama=>[def]]). <- debe fallar
+ */
+existe_valor_en_relaciones(not(Relacion), Valor, Relaciones) :-
+    member(not(Relacion=>_), Relaciones),
+    obten_relacion_completa(not(Relacion), Relaciones, not(Relacion=>Valores)),
+    (member(Valor, Valores); Valor = Valores).
+existe_valor_en_relaciones(Relacion, Valor, Relaciones) :-
+    member(Relacion => _, Relaciones),
+    obten_relacion_completa(Relacion, Relaciones, Relacion=>Valores),
+    (member(Valor, Valores); Valor = Valores), !.
+
+/*
+ * Verifica si un objeto o clase tiene una relacion determinada.
+ * %?- kb(KB), obten_clase(KB, perro, Clase), tiene_relacion(odia=>gato, Clase).
+ * %?- kb(KB), obten_clase(KB, perro, Clase), tiene_relacion(odia=>perro, Clase).
+ * %?- kb(KB), obten_clase(KB, girasol, Clase), tiene_relacion(not(es_comida_por=>animal), Clase).
+ * %?- kb(KB), obten_objeto(KB, gira1, Objeto), tiene_relacion(mas_bella_que=>gira2, Objeto).
+ * %?- kb(KB), obten_objeto(KB, gira1, Objeto), tiene_relacion(mas_bella_que=>r2, Objeto).
+ * %?- kb(KB), obten_objeto(KB, gira1, Objeto), tiene_relacion(mas_bella_que=>[gira2, r2], Objeto).
+ */
+tiene_relacion(not(Rel=>Val), clase(_, _, _, Rels, _)) :-
+    member(not(Rel=>Val), Rels) ; existe_valor_en_relaciones(not(Rel), Val, Rels).
+tiene_relacion(Rel=>Val, clase(_, _, _, Rels, _)) :-
+    member(Rel=>Val, Rels); existe_valor_en_relaciones(Rel, Val, Rels).
+tiene_relacion(not(Rel=>Val), objeto(_, _, _, Rels)) :-
+    member(not(Rel=>Val), Rels) ; existe_valor_en_relaciones(not(Rel), Val, Rels).
+tiene_relacion(Rel=>Val, objeto(_, _, _, Rels)) :-
+    member(Rel=>Val, Rels); existe_valor_en_relaciones(Rel, Val, Rels).
+
+construye_objetos_relaciones_completas(_, [], []) :- !.
+construye_objetos_relaciones_completas(KB, [objeto(Nombre, Clase, Propiedades, _) | OtrosObjetos], [NuevoObj|NuevosObjetos]) :-
+    relaciones_de_objeto(KB, Nombre, NRels),
+    identidad(objeto(Nombre, Clase, Propiedades, NRels), NuevoObj),
+    construye_objetos_relaciones_completas(KB, OtrosObjetos, NuevosObjetos).
+
+/*
+ * Encuentra todos los objetos de la base de conocimiento que
+ * satisfacen la relacion Rel.
+ */
+objetos_con_relacion(KB, Rel, Objetos) :-
+    lista_de_objetos(KB, Objs),
+    construye_objetos_relaciones_completas(KB, Objs, NObjs),
+    include(tiene_relacion(Rel), NObjs, Objetos).
+
+construye_clases_relaciones_completas(_, [], []) :- !.
+construye_clases_relaciones_completas(KB, [clase(Nombre, SuperClase, Propiedades, _, Objs)|OtrasClases], [NuevaClase|NuevasClases]) :-
+    relaciones_de_clase(KB, Nombre, NRels),
+    identidad(clase(Nombre, SuperClase, Propiedades, NRels, Objs), NuevaClase),
+    construye_clases_relaciones_completas(KB, OtrasClases, NuevasClases).
+
+/*
+ * Encuentra todas las clases de la base de conocimiento que
+ * satisfacen la relacion Rel.
+ */
+clases_con_relacion(KB, Rel, Clases) :-
+    lista_de_clases(KB, Cls),
+    construye_clases_relaciones_completas(KB, Cls, NCls),
+    include(tiene_relacion(Rel), NCls, Clases).
+
+/*
+ * Dada una lista de clases, obtiene la lista de todas las clases que
+ * tiene una relacion negada respecto a la relación dada.
+ */
+clases_con_relacion_negada(Rel, Clases, ClasesRelNegada) :-
+    rel_negada(Rel, NotRel),
+    include(tiene_relacion(NotRel), Clases, ClasesRelNegada).
+
+/*
+ * Dada una lista de objetos, obtiene todos los objetos que tienen una
+ * relacion negada respecto a la relacion dada.
+ */
+objetos_con_relacion_negada(Rel, Objetos, ObjetosRelNegada) :-
+    rel_negada(Rel, NotRel),
+    include(tiene_relacion(NotRel), Objetos, ObjetosRelNegada).
+
+/*
+ * Dada una relación, obtiene todos los objetos con esa relación a
+ * partir de la información de la base de conocimiento.
+ * %?- kb(KB), objetos_de_clase_con_relacion(KB, odia=>gato, Clases).
+ * %?- kb(KB), objetos_de_clase_con_relacion(KB, olida_por=>perro, Clases).
+ */
+objetos_de_clase_con_relacion(KB, Rel, Objetos) :-
+    clases_con_relacion(KB, Rel, ClsRel),
+    extrae_objetos_de_clases(KB, ClsRel, ObjsCls),
+    objetos_con_relacion_negada(Rel, ObjsCls, ObjsRelNegada),
+    subtract(ObjsCls, ObjsRelNegada, Objetos).
+
+/*
+ * Da una relación, obtiene todos los objetos que están en la
+ * extensión de la relación de una base de conocimiento.
+ * %?- kb(KB), extension_de_relacion(KB, olida_por=>perro, Clases).
+ * %?- kb(KB), extension_de_relacion(KB, odia=>gato, Clases).
+ */
+extension_de_relacion(KB, Rel, Objetos) :-
+    objetos_con_relacion(KB, Rel, ObjsRel),
+    objetos_de_clase_con_relacion(KB, Rel, ObjsCls),
+    append(ObjsRel, ObjsCls, ObjsMerge),
+    elimina_obj_dup(ObjsMerge, Objetos).
+
+
+nombre_de_objeto_con_relacion(_, [], _, []) :- !.
+nombre_de_objeto_con_relacion(KB, [objeto(Nombre, Clase, _, Rels)|OtrosObjs], Rel, [Resultado|OtrosRes]) :-
+    (obten_relacion(Rel, Rels, Val); (relaciones_de_clase(KB, Clase, Relaciones),
+                                       obten_relacion(Rel, Relaciones, Val))),
+    identidad(Nombre=>(Val), Resultado),
+    nombre_de_objeto_con_relacion(KB, OtrosObjs, Rel, OtrosRes).
+
+/*
+ * Imprime de forma "bonita" la extensión de una relación.
+ * %?- kb(KB), pprint_extension_de_relacion(KB, odia=>gato, Clases).
+ * %?- kb(KB), pprint_extension_de_relacion(KB, olida_por=>perro, Clases).
+ */
+pprint_extension_de_relacion(KB, Rel, Objetos) :-
+    extension_de_relacion(KB, Rel, ObjsComp),
+    nombre_de_objeto_con_propiedad(KB, ObjsComp, Rel, Objetos).
+
+/*
+ * Dada una propiedad, obtiene el nombre de todos los objetos que
+ * están bajo la extension de la propiedad.
+ * %?- kb(KB), extension_de_relacion_nombres(KB, olida_por=>perro, Clases).
+ * %?- kb(KB), extension_de_relacion_nombres(KB, odia=>gato, Clases).
+ */
+extension_de_relacion_nombres(KB, Rel, NombreObjetos) :-
+    extension_de_relacion(KB, Rel, Objetos),
     nombre_objetos(Objetos, NombreObjetos).
