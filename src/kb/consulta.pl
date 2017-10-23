@@ -23,11 +23,11 @@
  */
 kb([clase(top, none, [], [], []),
     clase(animal, top, [movil], [], []),
-    clase(perro, animal, [canino], [odia=>[gato]], [abc, def]),
+    clase(perro, animal, [canino], [odia=>[gato], not(ama=>[girasol])], [abc, def]),
     objeto(abc, perro, [agresivo, alias=>[diablo]], [muerde=>[r1, r2], huele=>[r3], ama=>[def]]),
     objeto(def, perro, [not(agresivo), alias=>[fido, bueno]], [not(odia=>[gato]), odia=>[ardilla]]),
     clase(gato, animal, [felino], [huye=>[perro]], []),
-    clase(vegetal,top,	[not(movil), not(color=>negro)], [es_comida_por=>[animal], olida_por=>[perro]], []),
+    clase(vegetal,top,	[not(movil), not(color=>negro)], [es_comida_por=>[animal], olida_por=>[perro], not()], []),
     clase(girasol,vegetal, [movil, color=>[amarillo, rojo]],[not(es_comida_por=>[animal])], [gira1, gira2]),
     objeto(gira1,girasol,[color=>rojo,not(color=>amarillo),alias=>[rojito,chulote]],[mas_bella_que=>[gira2, r2]]),
     objeto(gira2,girasol,[alias=>[udf]],[]),
@@ -420,7 +420,6 @@ tiene_propiedad(Prop, objeto(_, _, Props, _)) :-
 tiene_propiedad(not(Prop), objeto(_, _, Props, _)) :-
     member(not(Prop), Props), member(not(Prop=>_), Props).
 
-
 /*
  * Remueve duplicados de una lista.
  * %?- rem_dups([a, b, b, a, c, c, d, d, d, e], Result).
@@ -750,6 +749,10 @@ tiene_relacion(not(Rel=>Val), objeto(_, _, _, Rels)) :-
     member(not(Rel=>Val), Rels) ; existe_valor_en_relaciones(not(Rel), Val, Rels).
 tiene_relacion(Rel=>Val, objeto(_, _, _, Rels)) :-
     member(Rel=>Val, Rels); existe_valor_en_relaciones(Rel, Val, Rels).
+
+tiene_relacion_nombre(not(Rel), Rels) :- member(not(Rel=>_), Rels), !.
+tiene_relacion_nombre(Rel, Rels) :- member(Rel=>_, Rels).
+
 
 construye_objetos_relaciones_completas(_, [], []) :- !.
 construye_objetos_relaciones_completas(KB, [objeto(Nombre, Clase, Propiedades, _) | OtrosObjetos], [NuevoObj|NuevosObjetos]) :-

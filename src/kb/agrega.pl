@@ -42,3 +42,59 @@ agrega_clase(KB, Clase, SuperClase, Propiedades, Relaciones, Objetos, NuevaKB) :
     es_clase(NuevaClase),
     not(obten_clase(KB, Clase, _)),
     append(KB, [NuevaClase], NuevaKB).
+
+
+/*
+ * Agrega la relación dada a la clase Clase. Si el valor de la
+ * relación ya existe, no agrega la relación. Si el valor no existe,
+ * pero ya hay valores previos para la relación, entonces agrega el
+ * nuevo valor a la lista de valores.
+ *
+ * %?- kb(KB), agrega_relacion_a_clase(KB, not(ama=>avestruz), perro, NKB), obten_clase(NKB, perro, Clase).
+ * %?- kb(KB), agrega_relacion_a_clase(KB, not(ama=>[avestruz]), perro, NKB), obten_clase(NKB, perro, Clase).
+ * %?- kb(KB), agrega_relacion_a_clase(KB, not(odia=>avestruz), perro, NKB), obten_clase(NKB, perro, Clase).
+ * %?- kb(KB), agrega_relacion_a_clase(KB, odia=>avestruz, perro, NKB), obten_clase(NKB, perro, Clase).
+ * %?- kb(KB), agrega_relacion_a_clase(KB, odia=>[avestruz], perro, NKB), obten_clase(NKB, perro, Clase). %
+ * %?- kb(KB), agrega_relacion_a_clase(KB, ama=>avestruz, perro, NKB), obten_clase(NKB, perro, Clase).
+ * %?- kb(KB), agrega_relacion_a_clase(KB, odia=>gato, perro, NKB), obten_clase(NKB, perro, Clase). <- Debe fallar.
+ */
+agrega_relacion_a_clase(KB, not(Rel=>Val), Clase, NuevaKB) :-
+    obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
+    tiene_relacion_nombre(not(Rel), Rels),
+    not(existe_valor_en_relaciones(not(Rel), Val, Rels)),
+    obten_relacion_completa(not(Rel), Rels, not(Rel=>Vals)),
+    ((not(is_list(Val)), append([Val], Vals, NVals));
+     (is_list(Val), append(Val, Vals, NVals))),
+    reemplaza(Rels, not(Rel=>Vals), not(Rel=>NVals), NRels),
+    reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
+              clase(Clase, SuperClase, Props, NRels, Objs),
+              NuevaKB), !.
+agrega_relacion_a_clase(KB, not(Rel=>Val), Clase, NuevaKB) :-
+    obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
+    not(tiene_relacion_nombre(not(Rel), Rels)),
+    ((is_list(Val), append([not(Rel=>Val)], Rels, NRels));
+     (not(is_list(Val)), append([not(Rel=>[Val])], Rels, NRels))),
+    reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
+              clase(Clase, SuperClase, Props, NRels, Objs),
+              NuevaKB).
+agrega_relacion_a_clase(KB, Rel=>Val, Clase, NuevaKB) :-
+    obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
+    not(existe_valor_en_relaciones(Rel, Val, Rels)),
+    tiene_relacion_nombre(Rel, Rels),
+    obten_relacion_completa(Rel, Rels, Rel=>Vals),
+    ((not(is_list(Val)), append([Val], Vals, NVals));
+     (is_list(Val), append(Val, Vals, NVals))),
+    reemplaza(Rels, Rel=>Vals, Rel=>NVals, NRels),
+    reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
+              clase(Clase, SuperClase, Props, NRels, Objs),
+              NuevaKB), !.
+agrega_relacion_a_clase(KB, Rel=>Val, Clase, NuevaKB) :-
+    obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
+    not(tiene_relacion_nombre(Rel, Rels)),
+    ((is_list(Val), append([Rel=>Val], Rels, NRels));
+     (not(is_list(Val)), append([Rel=>[Val]], Rels, NRels))),
+    reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
+              clase(Clase, SuperClase, Props, NRels, Objs),
+              NuevaKB).
+
+
