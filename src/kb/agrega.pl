@@ -97,4 +97,55 @@ agrega_relacion_a_clase(KB, Rel=>Val, Clase, NuevaKB) :-
               clase(Clase, SuperClase, Props, NRels, Objs),
               NuevaKB).
 
+/*
+ * Agrega la relación dada al objeto Objeto. Sie el valor de la
+ * relación ya existe, no agrega la relación. Si el valor no existe,
+ * pero ya hay valores previos para la relación, entonces agregar el
+ * nuevo valor a la lista de valores.
+ * %?- kb(KB), agrega_relacion_a_objeto(KB, muerde=>r3, abc, NKB), obten_objeto(NKB, abc, Obj).
+ * %?- kb(KB), agrega_relacion_a_objeto(KB, muerde=>[r3], abc, NKB), obten_objeto(NKB, abc, Obj).
+ * %?- kb(KB), agrega_relacion_a_objeto(KB, not(odia=>[r3]), def, NKB), obten_objeto(NKB, def, Obj).
+ * %?- kb(KB), agrega_relacion_a_objeto(KB, not(odia=>r3), def, NKB), obten_objeto(NKB, def, Obj).
+ * %?- kb(KB), agrega_relacion_a_objeto(KB, not(ama=>r3), def, NKB), obten_objeto(NKB, def, Obj).
+ * %?- kb(KB), agrega_relacion_a_objeto(KB, ama=>abc, def, NKB), obten_objeto(NKB, def, Obj).
+ */
+agrega_relacion_a_objeto(KB, not(Rel=>Val), Objeto, NuevaKB) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
+    tiene_relacion_nombre(not(Rel), Rels),
+    not(existe_valor_en_relaciones(not(Rel), Val, Rels)),
+    obten_relacion_completa(not(Rel), Rels, not(Rel=>Vals)),
+    ((not(is_list(Val)), append([Val], Vals, NVals));
+     (is_list(Val), append(Val, Vals, NVals))),
+    reemplaza(Rels, not(Rel=>Vals), not(Rel=>NVals), NRels),
+    reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
+              objeto(Objeto, Clase, Props, NRels),
+              NuevaKB), !.
+agrega_relacion_a_objeto(KB, not(Rel=>Val), Objeto, NuevaKB) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
+    not(tiene_relacion_nombre(not(Rel), Rels)),
+    ((is_list(Val), append([not(Rel=>Val)], Rels, NRels));
+     (not(is_list(Val)), append([not(Rel=>[Val])], Rels, NRels))),
+    reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
+              objeto(Objeto, Clase, Props, NRels),
+              NuevaKB).
+agrega_relacion_a_objeto(KB, Rel=>Val, Objeto, NuevaKB) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
+    tiene_relacion_nombre(Rel, Rels),
+    not(existe_valor_en_relaciones(Rel, Val, Rels)),
+    obten_relacion_completa(Rel, Rels, Rel=>Vals),
+    ((not(is_list(Val)), append([Val], Vals, NVals));
+     (is_list(Val), append(Val, Vals, NVals))),
+    reemplaza(Rels, Rel=>Vals, Rel=>NVals, NRels),
+    reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
+              objeto(Objeto, Clase, Props, NRels),
+              NuevaKB), !.
+agrega_relacion_a_objeto(KB, Rel=>Val, Objeto, NuevaKB) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
+    not(tiene_relacion_nombre(Rel, Rels)),
+    ((is_list(Val), append([Rel=>Val], Rels, NRels));
+     (not(is_list(Val)), append([Rel=>[Val]], Rels, NRels))),
+    reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
+              objeto(Objeto, Clase, Props, NRels),
+              NuevaKB).
+
 
