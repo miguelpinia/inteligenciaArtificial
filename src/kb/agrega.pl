@@ -210,4 +210,64 @@ agrega_propiedad_a_clase(KB, Prop, Clase, NuevaKB) :-
               clase(Clase, SuperClase, NProps, Rels, Objs),
               NuevaKB).
 
-
+/*
+ * Agrega la propiedad dada a la clase Clase. Si el valor de la
+ * propiedad ya existe, no agrega la propiedad. Si el valor no existe,
+ * pero ya hay valores previos para la propiedad, entonces agrega el
+ * nuevo valor a la lista de valores de la propiedad.
+ * %?- kb(KB), agrega_propiedad_a_objeto(KB, alias=>'Hijo de satán', abc, NKB), obten_objeto(NKB, abc, Clase).
+ * %?- kb(KB), agrega_propiedad_a_objeto(KB, not(volador), abc, NKB), obten_objeto(NKB, abc, Clase).
+ * %?- kb(KB), agrega_propiedad_a_objeto(KB, color=>blanco, abc, NKB), obten_objeto(NKB, abc, Clase).
+ */
+agrega_propiedad_a_objeto(KB, not(Prop=>Val), Objeto, NuevaKB) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
+    tiene_propiedad_nombre(not(Prop), Props),
+    not(existe_valor_en_propiedades(not(Prop), Val, Props)),
+    obten_propiedad_completa(not(Prop), Props, not(Prop=>Vals)),
+    ((not(is_list(Val)), append([Val], Vals, NVals));
+     (is_list(Val), append(Val, Vals, NVals))),
+    reemplaza(Props, not(Prop=>Vals), not(Prop=>NVals), NProps),
+    reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
+              objeto(Objeto, Clase, NProps, Rels),
+              NuevaKB),!.
+agrega_propiedad_a_objeto(KB, not(Prop=>Val), Objeto, NuevaKB) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
+    not(tiene_propiedad_nombre(not(Prop), Props)),
+    ((is_list(Val), append([not(Prop=>Val)], Props, NProps));
+     (not(is_list(Val)), append([not(Prop=>[Val])], Props, NProps))),
+    reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
+              objeto(Objeto, Clase, NProps, Rels),
+              NuevaKB).
+agrega_propiedad_a_objeto(KB, Prop=>Val, Objeto, NuevaKB) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
+    tiene_propiedad_nombre(Prop, Props),
+    not(existe_valor_en_propiedades(Prop, Val, Props)),
+    obten_propiedad_completa(Prop, Props, Prop=>Vals),
+    ((not(is_list(Val)), append([Val], Vals, NVals));
+     (is_list(Val), append(Val, Vals, NVals))),
+    reemplaza(Props, Prop=>Vals, Prop=>NVals, NProps),
+    reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
+              objeto(Objeto, Clase, NProps, Rels),
+              NuevaKB), !.
+agrega_propiedad_a_objeto(KB, Prop=>Val, Objeto, NuevaKB) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
+    not(tiene_propiedad_nombre(Prop, Props)),
+    ((is_list(Val), append([Prop=>Val], Props, NProps));
+     (not(is_list(Val)), append([Prop=>[Val]], Props, NProps))),
+    reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
+              objeto(Objeto, Clase, NProps, Rels),
+              NuevaKB).
+agrega_propiedad_a_objeto(KB, not(Prop), Objeto, NuevaKB) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
+    not(tiene_propiedad_nombre(not(Prop), Props)),
+    append([not(Prop)], Props, NProps),
+    reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
+              objeto(Objeto, Clase, NProps, Rels),
+              NuevaKB).
+agrega_propiedad_a_objeto(KB, Prop, Objeto, NuevaKB) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
+    not(tiene_propiedad_nombre(Prop, Props)),
+    append([Prop], Props, NProps),
+    reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
+              objeto(Objeto, Clase, NProps, Rels),
+              NuevaKB).
