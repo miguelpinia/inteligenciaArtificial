@@ -420,6 +420,9 @@ tiene_propiedad(Prop, objeto(_, _, Props, _)) :-
 tiene_propiedad(not(Prop), objeto(_, _, Props, _)) :-
     member(not(Prop), Props), member(not(Prop=>_), Props).
 
+tiene_propiedad_nombre(not(Prop), Props) :- (member(not(Prop=>_), Props); member(not(Prop), Props)), !.
+tiene_propiedad_nombre(Prop, Props) :- member(Prop=>_, Props); member(Prop, Props).
+
 /*
  * Remueve duplicados de una lista.
  * %?- rem_dups([a, b, b, a, c, c, d, d, d, e], Result).
