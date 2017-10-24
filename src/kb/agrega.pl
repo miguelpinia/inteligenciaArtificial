@@ -149,7 +149,7 @@ agrega_relacion_a_objeto(KB, Rel=>Val, Objeto, NuevaKB) :-
               NuevaKB).
 
 /*
- * Agrega la propiedad dada al objeto Objeto. Si el valor de la
+ * Agrega la propiedad dada a la clase Clase. Si el valor de la
  * propiedad ya existe, no agrega la propiedad. Si el valor no existe,
  * pero ya hay valores previos para la propiedad, entonces agrega el
  * nuevo valor a la lista de valores de la propiedad.
