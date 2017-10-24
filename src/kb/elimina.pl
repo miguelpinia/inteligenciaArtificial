@@ -1,3 +1,5 @@
+:- [consulta].
+
 /*
  * Dado un objeto y una clase, elimina el objeto de la lista de
  * objetos de la clase dada.
