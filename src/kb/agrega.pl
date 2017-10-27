@@ -43,6 +43,35 @@ agrega_clase(KB, Clase, SuperClase, Propiedades, Relaciones, Objetos, NuevaKB) :
     not(obten_clase(KB, Clase, _)),
     append(KB, [NuevaClase], NuevaKB).
 
+/*
+ * Dado un valor Val, agrega dicho valor al principio una lista de valores Vals y
+ * guarda el resultado en NVals.
+ * ?- agrega_valor_a_lista(5, [1, 2, 3, 4], Res).
+ * ?- agrega_valor_a_lista([5], [1, 2, 3, 4], Res).
+ */
+agrega_valor_a_lista(Val, Vals, NVals) :-
+    (not(is_list(Val)), append([Val], Vals, NVals), !);
+    (is_list(Val), append(Val, Vals, NVals), !).
+
+/*
+ * Dado un elemento de la forma not(foo=>bar), foo=>bar ó foo, agrega
+ * dicho elemento a la lista Elementos y guarda el resultado en
+ * NElementos.
+ * ?- agrega_elemento_a_lista(not(hate=>foo), [hate=>[human]], Res).
+ * ?- agrega_elemento_a_lista(hate=>foo, [hate=>[human]], Res).
+ * ?- agrega_elemento_a_lista(not(hate), [hate=>[human]], Res).
+ * ?- agrega_elemento_a_lista(hate, [hate=>[human]], Res).
+ */
+agrega_elemento_a_lista(not(Elemento=>Val), Elementos, NElementos) :-
+    (is_list(Val), append([not(Elemento=>Val)], Elementos, NElementos), !);
+    (not(is_list(Val)), append([not(Elemento=>[Val])], Elementos, NElementos), !).
+agrega_elemento_a_lista(Elemento=>Val, Elementos, NElementos) :-
+    (is_list(Val), append([Elemento=>Val], Elementos, NElementos), !);
+     (not(is_list(Val)), append([Elemento=>[Val]], Elementos, NElementos), !).
+agrega_elemento_a_lista(not(Elemento), Elementos, NElementos) :-
+    append([not(Elemento)], Elementos, NElementos), !.
+agrega_elemento_a_lista(Elemento, Elementos, NElementos) :-
+    append([Elemento], Elementos, NElementos).
 
 /*
  * Agrega la relación dada a la clase Clase. Si el valor de la
@@ -54,7 +83,7 @@ agrega_clase(KB, Clase, SuperClase, Propiedades, Relaciones, Objetos, NuevaKB) :
  * %?- kb(KB), agrega_relacion_a_clase(KB, not(ama=>[avestruz]), perro, NKB), obten_clase(NKB, perro, Clase).
  * %?- kb(KB), agrega_relacion_a_clase(KB, not(odia=>avestruz), perro, NKB), obten_clase(NKB, perro, Clase).
  * %?- kb(KB), agrega_relacion_a_clase(KB, odia=>avestruz, perro, NKB), obten_clase(NKB, perro, Clase).
- * %?- kb(KB), agrega_relacion_a_clase(KB, odia=>[avestruz], perro, NKB), obten_clase(NKB, perro, Clase). %
+ * %?- kb(KB), agrega_relacion_a_clase(KB, odia=>[avestruz], perro, NKB), obten_clase(NKB, perro, Clase).
  * %?- kb(KB), agrega_relacion_a_clase(KB, ama=>avestruz, perro, NKB), obten_clase(NKB, perro, Clase).
  * %?- kb(KB), agrega_relacion_a_clase(KB, odia=>gato, perro, NKB), obten_clase(NKB, perro, Clase). <- Debe fallar.
  */
@@ -63,8 +92,7 @@ agrega_relacion_a_clase(KB, not(Rel=>Val), Clase, NuevaKB) :-
     tiene_relacion_nombre(not(Rel), Rels),
     not(existe_valor_en_relaciones(not(Rel), Val, Rels)),
     obten_relacion_completa(not(Rel), Rels, not(Rel=>Vals)),
-    ((not(is_list(Val)), append([Val], Vals, NVals));
-     (is_list(Val), append(Val, Vals, NVals))),
+    agrega_valor_a_lista(Val, Vals, NVals),
     reemplaza(Rels, not(Rel=>Vals), not(Rel=>NVals), NRels),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, Props, NRels, Objs),
@@ -72,18 +100,16 @@ agrega_relacion_a_clase(KB, not(Rel=>Val), Clase, NuevaKB) :-
 agrega_relacion_a_clase(KB, not(Rel=>Val), Clase, NuevaKB) :-
     obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
     not(tiene_relacion_nombre(not(Rel), Rels)),
-    ((is_list(Val), append([not(Rel=>Val)], Rels, NRels));
-     (not(is_list(Val)), append([not(Rel=>[Val])], Rels, NRels))),
+    agrega_elemento_a_lista(not(Rel=>Val), Rels, NRels),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, Props, NRels, Objs),
-              NuevaKB).
+              NuevaKB), !.
 agrega_relacion_a_clase(KB, Rel=>Val, Clase, NuevaKB) :-
     obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
     tiene_relacion_nombre(Rel, Rels),
     not(existe_valor_en_relaciones(Rel, Val, Rels)),
     obten_relacion_completa(Rel, Rels, Rel=>Vals),
-    ((not(is_list(Val)), append([Val], Vals, NVals));
-     (is_list(Val), append(Val, Vals, NVals))),
+    agrega_valor_a_lista(Val, Vals, NVals),
     reemplaza(Rels, Rel=>Vals, Rel=>NVals, NRels),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, Props, NRels, Objs),
@@ -91,11 +117,10 @@ agrega_relacion_a_clase(KB, Rel=>Val, Clase, NuevaKB) :-
 agrega_relacion_a_clase(KB, Rel=>Val, Clase, NuevaKB) :-
     obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
     not(tiene_relacion_nombre(Rel, Rels)),
-    ((is_list(Val), append([Rel=>Val], Rels, NRels));
-     (not(is_list(Val)), append([Rel=>[Val]], Rels, NRels))),
+    agrega_elemento_a_lista(Rel=>Val, Rels, NRels),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, Props, NRels, Objs),
-              NuevaKB).
+              NuevaKB), !.
 
 /*
  * Agrega la relación dada al objeto Objeto. Sie el valor de la
@@ -114,8 +139,7 @@ agrega_relacion_a_objeto(KB, not(Rel=>Val), Objeto, NuevaKB) :-
     tiene_relacion_nombre(not(Rel), Rels),
     not(existe_valor_en_relaciones(not(Rel), Val, Rels)),
     obten_relacion_completa(not(Rel), Rels, not(Rel=>Vals)),
-    ((not(is_list(Val)), append([Val], Vals, NVals));
-     (is_list(Val), append(Val, Vals, NVals))),
+    agrega_valor_a_lista(Val, Vals, NVals),
     reemplaza(Rels, not(Rel=>Vals), not(Rel=>NVals), NRels),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, Props, NRels),
@@ -123,8 +147,7 @@ agrega_relacion_a_objeto(KB, not(Rel=>Val), Objeto, NuevaKB) :-
 agrega_relacion_a_objeto(KB, not(Rel=>Val), Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     not(tiene_relacion_nombre(not(Rel), Rels)),
-    ((is_list(Val), append([not(Rel=>Val)], Rels, NRels));
-     (not(is_list(Val)), append([not(Rel=>[Val])], Rels, NRels))),
+    agrega_elemento_a_lista(not(Rel=>Val), Rels, NRels),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, Props, NRels),
               NuevaKB).
@@ -133,8 +156,7 @@ agrega_relacion_a_objeto(KB, Rel=>Val, Objeto, NuevaKB) :-
     tiene_relacion_nombre(Rel, Rels),
     not(existe_valor_en_relaciones(Rel, Val, Rels)),
     obten_relacion_completa(Rel, Rels, Rel=>Vals),
-    ((not(is_list(Val)), append([Val], Vals, NVals));
-     (is_list(Val), append(Val, Vals, NVals))),
+    agrega_valor_a_lista(Val, Vals, NVals),
     reemplaza(Rels, Rel=>Vals, Rel=>NVals, NRels),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, Props, NRels),
@@ -142,8 +164,7 @@ agrega_relacion_a_objeto(KB, Rel=>Val, Objeto, NuevaKB) :-
 agrega_relacion_a_objeto(KB, Rel=>Val, Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     not(tiene_relacion_nombre(Rel, Rels)),
-    ((is_list(Val), append([Rel=>Val], Rels, NRels));
-     (not(is_list(Val)), append([Rel=>[Val]], Rels, NRels))),
+    agrega_elemento_a_lista(Rel=>Val, Rels, NRels),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, Props, NRels),
               NuevaKB).
@@ -162,27 +183,24 @@ agrega_propiedad_a_clase(KB, not(Prop=>Val), Clase, NuevaKB) :-
     tiene_propiedad_nombre(not(Prop), Props),
     not(existe_valor_en_propiedades(not(Prop), Val, Props)),
     obten_propiedad_completa(not(Prop), Props, not(Prop=>Vals)),
-    ((not(is_list(Val)), append([Val], Vals, NVals));
-     (is_list(Val), append(Val, Vals, NVals))),
+    agrega_valor_a_lista(Val, Vals, NVals),
     reemplaza(Props, not(Prop=>Vals), not(Prop=>NVals), NProps),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, NProps, Rels, Objs),
-              NuevaKB),!.
+              NuevaKB), !.
 agrega_propiedad_a_clase(KB, not(Prop=>Val), Clase, NuevaKB) :-
     obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
     not(tiene_propiedad_nombre(not(Prop), Props)),
-    ((is_list(Val), append([not(Prop=>Val)], Props, NProps));
-     (not(is_list(Val)), append([not(Prop=>[Val])], Props, NProps))),
+    agrega_elemento_a_lista(not(Prop=>Val), Props, NProps),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, NProps, Rels, Objs),
-              NuevaKB).
+              NuevaKB), !.
 agrega_propiedad_a_clase(KB, Prop=>Val, Clase, NuevaKB) :-
     obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
     tiene_propiedad_nombre(Prop, Props),
     not(existe_valor_en_propiedades(Prop, Val, Props)),
     obten_propiedad_completa(Prop, Props, Prop=>Vals),
-    ((not(is_list(Val)), append([Val], Vals, NVals));
-     (is_list(Val), append(Val, Vals, NVals))),
+    agrega_valor_a_lista(Val, Vals, NVals),
     reemplaza(Props, Prop=>Vals, Prop=>NVals, NProps),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, NProps, Rels, Objs),
@@ -190,25 +208,24 @@ agrega_propiedad_a_clase(KB, Prop=>Val, Clase, NuevaKB) :-
 agrega_propiedad_a_clase(KB, Prop=>Val, Clase, NuevaKB) :-
     obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
     not(tiene_propiedad_nombre(Prop, Props)),
-    ((is_list(Val), append([Prop=>Val], Props, NProps));
-     (not(is_list(Val)), append([Prop=>[Val]], Props, NProps))),
+    agrega_elemento_a_lista(Prop=>Val, Props, NProps),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, NProps, Rels, Objs),
-              NuevaKB).
+              NuevaKB), !.
 agrega_propiedad_a_clase(KB, not(Prop), Clase, NuevaKB) :-
     obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
     not(tiene_propiedad_nombre(not(Prop), Props)),
-    append([not(Prop)], Props, NProps),
+    agrega_elemento_a_lista(not(Prop), Props, NProps),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, NProps, Rels, Objs),
-              NuevaKB).
+              NuevaKB), !.
 agrega_propiedad_a_clase(KB, Prop, Clase, NuevaKB) :-
     obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
     not(tiene_propiedad_nombre(Prop, Props)),
-    append([Prop], Props, NProps),
+    agrega_elemento_a_lista(Prop, Props, NProps),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, NProps, Rels, Objs),
-              NuevaKB).
+              NuevaKB), !.
 
 /*
  * Agrega la propiedad dada a la clase Clase. Si el valor de la
@@ -224,8 +241,7 @@ agrega_propiedad_a_objeto(KB, not(Prop=>Val), Objeto, NuevaKB) :-
     tiene_propiedad_nombre(not(Prop), Props),
     not(existe_valor_en_propiedades(not(Prop), Val, Props)),
     obten_propiedad_completa(not(Prop), Props, not(Prop=>Vals)),
-    ((not(is_list(Val)), append([Val], Vals, NVals));
-     (is_list(Val), append(Val, Vals, NVals))),
+    agrega_valor_a_lista(Val, Vals, NVals),
     reemplaza(Props, not(Prop=>Vals), not(Prop=>NVals), NProps),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, NProps, Rels),
@@ -233,18 +249,16 @@ agrega_propiedad_a_objeto(KB, not(Prop=>Val), Objeto, NuevaKB) :-
 agrega_propiedad_a_objeto(KB, not(Prop=>Val), Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     not(tiene_propiedad_nombre(not(Prop), Props)),
-    ((is_list(Val), append([not(Prop=>Val)], Props, NProps));
-     (not(is_list(Val)), append([not(Prop=>[Val])], Props, NProps))),
+    agrega_elemento_a_lista(not(Prop=>Val), Props, NProps),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, NProps, Rels),
-              NuevaKB).
+              NuevaKB), !.
 agrega_propiedad_a_objeto(KB, Prop=>Val, Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     tiene_propiedad_nombre(Prop, Props),
     not(existe_valor_en_propiedades(Prop, Val, Props)),
     obten_propiedad_completa(Prop, Props, Prop=>Vals),
-    ((not(is_list(Val)), append([Val], Vals, NVals));
-     (is_list(Val), append(Val, Vals, NVals))),
+    agrega_valor_a_lista(Val, Vals, NVals),
     reemplaza(Props, Prop=>Vals, Prop=>NVals, NProps),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, NProps, Rels),
@@ -252,22 +266,21 @@ agrega_propiedad_a_objeto(KB, Prop=>Val, Objeto, NuevaKB) :-
 agrega_propiedad_a_objeto(KB, Prop=>Val, Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     not(tiene_propiedad_nombre(Prop, Props)),
-    ((is_list(Val), append([Prop=>Val], Props, NProps));
-     (not(is_list(Val)), append([Prop=>[Val]], Props, NProps))),
+    agrega_elemento_a_lista(Prop=>Val, Props, NProps),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, NProps, Rels),
-              NuevaKB).
+              NuevaKB), !.
 agrega_propiedad_a_objeto(KB, not(Prop), Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     not(tiene_propiedad_nombre(not(Prop), Props)),
-    append([not(Prop)], Props, NProps),
+    agrega_elemento_a_lista(not(Prop), Props, NProps),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, NProps, Rels),
-              NuevaKB).
+              NuevaKB), !.
 agrega_propiedad_a_objeto(KB, Prop, Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     not(tiene_propiedad_nombre(Prop, Props)),
-    append([Prop], Props, NProps),
+    agrega_elemento_a_lista(Prop, Props, NProps),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, NProps, Rels),
-              NuevaKB).
+              NuevaKB), !.
