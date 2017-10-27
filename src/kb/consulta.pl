@@ -29,7 +29,7 @@ kb([clase(top, none, [], [], []),
     clase(gato, animal, [felino], [huye=>[perro]], []),
     clase(vegetal,top,	[not(movil), not(color=>negro)], [es_comida_por=>[animal], olida_por=>[perro], not()], []),
     clase(girasol,vegetal, [movil, color=>[amarillo, rojo]],[not(es_comida_por=>[animal])], [gira1, gira2]),
-    objeto(gira1,girasol,[color=>rojo,not(color=>amarillo),alias=>[rojito,chulote]],[mas_bella_que=>[gira2, r2]]),
+    objeto(gira1,girasol,[color=>rojo,not(color=>amarillo),alias=>[rojito,chulote]],[mas_bella_que=>[gira2, r2, gato]]),
     objeto(gira2,girasol,[alias=>[udf]],[]),
     clase(rosa, vegetal, [bonita,color=>udf], [mas_bella_que=>[girasol]], [r1,r2,r3]),
     objeto(r1,rosa,[color=>rojo],[]),
@@ -164,6 +164,12 @@ subclases(KB, Clase, SubClases) :-
     nombre_clases(Scls, SubClases).
 
 /*
+ * Obtiene el nombre de las subclases directas de una clase.
+ */
+subclases_directas(KB, Clase, SubClases) :-
+    hijos(KB, Clase, Hijos),
+    nombre_clases(Hijos, SubClases).
+/*
  * Obtiene todas las superclases de la clase Clase.
  * %?- kb(KB), superclases(KB, rosa, SuperClases).
  */
@@ -267,7 +273,8 @@ elimina_de_valores_de_propiedad(not(Prop=>Valor), not(Prop=>Valores), Resultado)
 elimina_de_valores_de_propiedad(Prop=>Valor, Prop=>Valores, Resultado) :-
     member(Valor, Valores),
     select(Valor, Valores, Res),
-    identidad(Prop=>Res, Resultado), !.
+    identidad(Prop=>Res, Resultado).
+elimina_de_valores_de_propiedad(_, Prop=>Valores, Prop=>Valores) :- !.
 
 /*
  * Dada una lista, reemplaza, el elemento X, por el elemento Y, y
