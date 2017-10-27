@@ -842,7 +842,7 @@ nombre_de_objeto_con_relacion(KB, [objeto(Nombre, Clase, _, Rels)|OtrosObjs], Re
  */
 pprint_extension_de_relacion(KB, Rel, Objetos) :-
     extension_de_relacion(KB, Rel, ObjsComp),
-    nombre_de_objeto_con_propiedad(KB, ObjsComp, Rel, Objetos).
+    nombre_de_objeto_con_relacion(KB, ObjsComp, Rel, Objetos).
 
 /*
  * Dada una propiedad, obtiene el nombre de todos los objetos que
