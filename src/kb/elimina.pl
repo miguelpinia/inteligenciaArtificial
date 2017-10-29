@@ -170,3 +170,21 @@ elimina_clase(KB, AEliminar, NuevaKB) :-
     elimina_clase_de_relaciones(NKB, AEliminar, NKB1),
     select(clase(AEliminar, SuperClase, Props, Rels, Objs), NKB1, NuevaKB).
 
+/*
+ * Elimina la propiedad Prop de un objeto.
+ * kb(KB), elimina_propiedad_de_objeto(KB, r1, color=>blanco, NKB), obten_objeto(KB, r1, Anterior), obten_objeto(NKB, r1, Nuevo). <- No debe cambiar el objeto.
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, r1, color=>rojo, NKB), obten_objeto(KB, r1, Anterior), obten_objeto(NKB, r1, Nuevo).
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, gira1, alias=>rojito, NKB), obten_objeto(KB, gira1, Anterior), obten_objeto(NKB, gira1, Nuevo).
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, gira1, not(color=>amarillo), NKB), obten_objeto(KB, gira1, Anterior), obten_objeto(NKB, gira1, Nuevo).
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, gira2, alias=>udf, NKB), obten_objeto(KB, gira2, Anterior), obten_objeto(NKB, gira2, Nuevo).
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, def, not(movil), NKB), obten_objeto(KB, def, Anterior), obten_objeto(NKB, def, Nuevo). <- no hacerle nada al objeto.
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, def, not(agresivo), NKB), obten_objeto(KB, def, Anterior), obten_objeto(NKB, def, Nuevo).
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, def, movil, NKB), obten_objeto(KB, def, Anterior), obten_objeto(NKB, def, Nuevo).
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, r2, movil, NKB), obten_objeto(KB, r2, Anterior), obten_objeto(NKB, r2, Nuevo).
+ */
+elimina_propiedad_de_objeto(KB, Objeto, Prop, NuevaKB) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
+    elimina_propiedad_de_propiedades(Prop, Props, NProps),
+    reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
+              objeto(Objeto, Clase, NProps, Rels),
+              NuevaKB), !.
