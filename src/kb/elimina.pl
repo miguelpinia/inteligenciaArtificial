@@ -188,3 +188,15 @@ elimina_propiedad_de_objeto(KB, Objeto, Prop, NuevaKB) :-
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, NProps, Rels),
               NuevaKB), !.
+
+/*
+ * Elimina la propiedad Prop de la clase Clase, y almacena el
+ * resultado en NuevaKB.
+ * kb(KB), elimina_propiedad_de_clase(KB, rosa, bonita, NKB), obten_clase(KB, rosa, Anterior), obten_clase(NKB, rosa, Nuevo).
+ */
+elimina_propiedad_de_clase(KB, Clase, Prop, NuevaKB) :-
+    obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
+    elimina_propiedad_de_propiedades(Prop, Props, NProps),
+    reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
+              clase(Clase, SuperClase, NProps, Rels, Objs),
+              NuevaKB).
