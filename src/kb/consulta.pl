@@ -317,9 +317,11 @@ elimina_propiedad_de_propiedades(Prop=>Valor, Props, Resultado) :-
      elimina_de_valores_de_propiedad(Prop=>Valor, PropFound, PropMod),
      reemplaza(Props, PropFound, PropMod, Resultado)).
 elimina_propiedad_de_propiedades(not(Prop), Props, Resultado) :-
-    member(not(Prop), Props), select(not(Prop), Props, Resultado).
+    (member(not(Prop), Props), select(not(Prop), Props, Resultado));
+    (not(member(not(Prop), Props)), identidad(Props, Resultado)).
 elimina_propiedad_de_propiedades(Prop, Props, Resultado) :-
-    member(Prop, Props), select(Prop, Props, Resultado).
+    (member(Prop, Props), select(Prop, Props, Resultado));
+    (not(member(Prop, Props)), identidad(Props, Resultado)).
 
 /*
  * Elimina las propiedades negadas, que aparecen después de la
