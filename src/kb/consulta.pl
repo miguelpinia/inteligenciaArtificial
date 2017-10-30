@@ -29,7 +29,7 @@ kb([clase(top, none, [], [], []),
     objeto(abc, perro, [agresivo, alias=>[diablo]], [muerde=>[r1, r2], huele=>[r3], ama=>[def]]),
     objeto(def, perro, [not(agresivo), alias=>[fido, bueno]], [not(odia=>[gato]), odia=>[ardilla]]),
     clase(gato, animal, [felino], [huye=>[perro]], []),
-    clase(vegetal,top,	[not(movil), not(color=>negro)], [es_comida_por=>[animal], olida_por=>[perro], not()], []),
+    clase(vegetal,top,	[not(movil), not(color=>negro)], [es_comida_por=>[animal], olida_por=>[perro]], []),
     clase(girasol,vegetal, [movil, color=>[amarillo, rojo]],[not(es_comida_por=>[animal])], [gira1, gira2]),
     objeto(gira1,girasol,[color=>rojo,not(color=>amarillo),alias=>[rojito,chulote]],[mas_bella_que=>[gira2, r2, gato]]),
     objeto(gira2,girasol,[alias=>[udf]],[]),
@@ -279,18 +279,6 @@ elimina_de_valores_de_propiedad(Prop=>Valor, Prop=>Valores, Resultado) :-
 elimina_de_valores_de_propiedad(_, Prop=>Valores, Prop=>Valores) :- !.
 
 /*
- * Dada una lista, reemplaza, el elemento X, por el elemento Y, y
- * devuelve la lista con el elemento reemplazado.
- */
-reemplaza([],_,_,[]):-!.
-reemplaza([X|Resto],X,Y,[Y|RestoReemplazado]):-
-	!,
-	reemplaza(Resto,X,Y,RestoReemplazado).
-reemplaza([W|Resto],X,Y,[W|RestoReemplazado]):-
-	!,
-	reemplaza(Resto,X,Y,RestoReemplazado).
-
-/*
  * Dada una propiedad con su valor y una lista de propiedades, elimina
  * la propiedad de la lista de propiedades y devuelve el resultado de
  * la eliminación.
@@ -360,8 +348,7 @@ propiedades_de_clase(KB, Clase, Propiedades) :-
     superclases(KB, Clase, SuperClases),
     propiedades_de_clases(KB, SuperClases, PropsSup),
     append(Props, PropsSup, PropsF),
-    elimina_propiedades_negadas(PropsF, Propiedades),
-    !.
+    fusiona(PropsF, Propiedades).
 
 /*
  * Obtiene una lista de las propiedades que tiene un objeto.
@@ -376,7 +363,7 @@ propiedades_de_objeto(KB, Objeto, Propiedades) :-
     obten_objeto(KB, Objeto, objeto(_, Clase, Props, _)),
     propiedades_de_clase(KB, Clase, ClsProps),
     append(Props, ClsProps, PropsFin),
-    elimina_propiedades_negadas(PropsFin, Propiedades).
+    fusiona(PropsFin, Propiedades).
 
 /*
  *
@@ -713,8 +700,8 @@ relaciones_de_clase(KB, Clase, Relaciones) :-
     superclases(KB, Clase, SuperClases),
     relaciones_de_clases(KB, SuperClases, RelsSup),
     append(Rels, RelsSup, RelsF),
-    elimina_relaciones_negadas(RelsF, Relaciones),
-    !.
+    imprime(RelsF),nl,
+    fusiona(RelsF, Relaciones).
 
 /*
  * Obtiene una lista de las relaciones que tiene un objeto.
@@ -727,7 +714,7 @@ relaciones_de_objeto(KB, Objeto, Relaciones) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, _, Rels)),
     relaciones_de_clase(KB, Clase, ClsRels),
     append(Rels, ClsRels, RelsFin),
-    elimina_relaciones_negadas(RelsFin, Relaciones).
+    fusiona(RelsFin, Relaciones).
 
 /*
  * Verifica si dado el nombre de una relacion y un valor, estos forman
