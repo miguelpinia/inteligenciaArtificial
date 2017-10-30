@@ -199,4 +199,18 @@ elimina_propiedad_de_clase(KB, Clase, Prop, NuevaKB) :-
     elimina_propiedad_de_propiedades(Prop, Props, NProps),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, NProps, Rels, Objs),
-              NuevaKB).
+              NuevaKB), !.
+
+elimina_relacion_de_objeto(KB, Objeto, Rel, NuevaKB) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
+    elimina_relacion_de_relaciones(Rel, Rels, NRels),
+    reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
+              objeto(Objeto, Clase, Props, NRels),
+              NuevaKB), !.
+
+elimina_relacion_de_clase(KB, Clase, Rel, NuevaKB) :-
+    obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objetos)),
+    elimina_relacion_de_relaciones(Rel, Rels, NRels),
+    reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objetos),
+              clase(Clase, SuperClase, Props, NRels, Objetos),
+              NuevaKB), !.
