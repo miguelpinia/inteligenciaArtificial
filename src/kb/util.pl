@@ -48,10 +48,9 @@ niega_lista([],[]).
  * fusiona([bonita,color=>blanco,color=>val([azul,negro]),not(color=>rojo),not(bonita)],Res).
  * Res = [color=>blanco, bonita, not(color=>[rojo])].
  */
+
 fusiona(Lista,ListaFusionada):-
-    clasifica(Lista,[],[],Positivas_,NegativasPositivas_),
-    delete(Positivas_,_=>[],Positivas),
-    delete(NegativasPositivas_,_=>[],NegativasPositivas),
+    clasifica(Lista,[],[],Positivas,NegativasPositivas),
     niega_lista(NegativasPositivas,Negativas),
     append(Positivas,Negativas,ListaFusionada).
 
