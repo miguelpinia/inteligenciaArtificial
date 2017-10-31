@@ -10,7 +10,9 @@
  *   - pprint_extension_de_relacion(KB, Rel, Objetos)
  * - relaciones_de_objeto(KB, Objeto, Relaciones)
  * - relaciones_de_clase(KB, Clase, Relaciones)
- */
+*/
+
+% TODO: En caso de tener propiedades udf que se heredan y se reescriben en clases u objetos hijos, esta propiedad debería de desaparecer.
 
 /*
  * Agrega operador =>.
