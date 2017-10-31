@@ -4,7 +4,9 @@
  * Predicados principales:
  * - agrega_objeto(KB, Nombre, Clase, Propiedades, Relaciones, NuevaKB).
  * - agrega_clase(KB, Clase, SuperClase, Propiedades, Relaciones, Objetos, NuevaKB).
- */
+*/
+
+% TODO: Al agregar la negación de un predicado o relación, eliminar el predicado que no estaba negado de la lista de propiedades o relaciones.
 
 /*
  * Agrega el objeto a la lista de objetos de la clase Clase,
