@@ -700,7 +700,6 @@ relaciones_de_clase(KB, Clase, Relaciones) :-
     superclases(KB, Clase, SuperClases),
     relaciones_de_clases(KB, SuperClases, RelsSup),
     append(Rels, RelsSup, RelsF),
-    imprime(RelsF),nl,
     fusiona(RelsF, Relaciones).
 
 /*
