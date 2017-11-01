@@ -1,3 +1,4 @@
+:- [util].
 /*
  * Predicados principales:
  * - extension_de_clase(KB, Clase, Objetos)
@@ -13,11 +14,6 @@
 */
 
 % TODO: En caso de tener propiedades udf que se heredan y se reescriben en clases u objetos hijos, esta propiedad debería de desaparecer.
-
-/*
- * Agrega operador =>.
- */
-:- op(800,xfx,'=>').
 
 
 /*
@@ -207,15 +203,6 @@ extension_de_clase(KB, Clase, Objetos) :-
     append([Clase], SubClases, SCls),
     ext_clase(KB, SCls, Objs),
     nombre_objetos(Objs, Objetos).
-
-/*
- * Obtiene la identidad de una propiedad.
- * %?- prop_identidad(not(not(movil)), Prop).
- * %?- prop_identidad(not(movil), Prop).
- * %?- prop_identidad(movil, Prop).
- */
-prop_identidad(not(not(Prop)), Prop) :- !.
-prop_identidad(Prop, Prop).
 
 /*
  * Obtiene la propiedad negada de una propiedad.
@@ -531,8 +518,9 @@ extension_de_propiedad(KB, Prop, Objetos) :-
  */
 nombre_de_objeto_con_propiedad(_, [], _, []) :- !.
 nombre_de_objeto_con_propiedad(KB, [objeto(Nombre, Clase, Props, _)|OtrosObjs],Prop,[Resultado|OtrosRes]) :-
-    (obten_propiedad(Prop, Props, Val); (propiedades_de_clase(KB, Clase, Propiedades),
-                                         obten_propiedad(Prop, Propiedades, Val))),
+    (obten_propiedad_completa(Prop, Props, PropRes); (propiedades_de_clase(KB, Clase, Propiedades),
+                                                      obten_propiedad(Prop, Propiedades, PropRes))),
+    (identidad(PropRes, _=>Val); identidad(PropRes, Val)),
     identidad(Nombre=>(Val), Resultado),
     nombre_de_objeto_con_propiedad(KB, OtrosObjs, Prop, OtrosRes).
 
@@ -558,15 +546,6 @@ pprint_extension_de_propiedad(KB, Prop, Objetos) :-
 extension_de_propiedad_nombres(KB, Prop, NombreObjetos) :-
     extension_de_propiedad(KB, Prop, Objetos),
     nombre_objetos(Objetos, NombreObjetos).
-
-/*
- * Obtiene la identidad de una relacion.
- * %?- rel_identidad(not(not(odia=>[gato])), Id).
- * %?- rel_identidad(not(odia=>[gato]), Id).
- * %?- rel_identidad(odia=>[gato], Id).
- */
-rel_identidad(not(not(Relacion)), Relacion) :- !.
-rel_identidad(Relacion, Relacion).
 
 /*
  * Obtiene la negación de una relación dada.
