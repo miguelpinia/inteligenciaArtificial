@@ -806,8 +806,9 @@ extension_de_relacion(KB, Rel, Objetos) :-
 
 nombre_de_objeto_con_relacion(_, [], _, []) :- !.
 nombre_de_objeto_con_relacion(KB, [objeto(Nombre, Clase, _, Rels)|OtrosObjs], Rel, [Resultado|OtrosRes]) :-
-    (obten_relacion(Rel, Rels, Val); (relaciones_de_clase(KB, Clase, Relaciones),
-                                       obten_relacion(Rel, Relaciones, Val))),
+    (obten_relacion_completa(Rel, Rels, RelRes); (relaciones_de_clase(KB, Clase, Relaciones),
+                                                  obten_relacion(Rel, Relaciones, RelRes))),
+    (identidad(RelRes, _=>Val); identidad(RelRes, Val)),
     identidad(Nombre=>(Val), Resultado),
     nombre_de_objeto_con_relacion(KB, OtrosObjs, Rel, OtrosRes).
 
