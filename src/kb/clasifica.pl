@@ -1,7 +1,17 @@
 :-[util].
 
 /*
-* clasifica(Lista,PositivasEncontradas,NegativasEncontradas,PositivasEncontradas,NegativasEncontradas)
+ * clasifica(Lista,Positivas,Negativas)
+ * Categoriza las propiedades o relaciones de Lista en Negativas y positivas repetando la especificidad
+ */
+clasifica(Lista,Positivas,Negativas):-
+    clasifica(Lista,[],[],Positivas_,NegativasPositivas_),
+    delete(Positivas_,_=>[],Positivas),
+    delete(NegativasPositivas_,_=>[],NegativasPositivas),
+    niega_lista(NegativasPositivas,Negativas).
+
+/*
+* clasifica(Lista,PositivasEncontradas,NegativasEncontradas,Positivas,Negativas)
 * Categoriza las propiedades o relaciones de Lista en Negativas y positivas repetando la especificidad
 * Lista una lista con las propiedades o relaciones posibles a agregar (solo en caso de no estar ya agregadas anteriormente)
 * PositivasEncontradas Las propiedades o relaciones positivas que ya se encontraron

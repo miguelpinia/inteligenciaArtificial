@@ -50,10 +50,7 @@ niega_lista([],[]).
  */
 
 fusiona(Lista,ListaFusionada):-
-    clasifica(Lista,[],[],Positivas_,NegativasPositivas_),
-    delete(Positivas_,_=>[],Positivas),
-    delete(NegativasPositivas_,_=>[],NegativasPositivas),
-    niega_lista(NegativasPositivas,Negativas),
+    clasifica(Lista,Positivas,Negativas),
     append(Positivas,Negativas,ListaFusionada).
 
 /*
