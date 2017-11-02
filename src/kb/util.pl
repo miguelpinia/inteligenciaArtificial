@@ -135,6 +135,14 @@ fusiona(Lista,ListaFusionada):-
     append(Positivas,Negativas,ListaFusionada).
 
 /*
+* clasifica(Lista,Positivas,Negativas)
+* Llamada principal
+*/
+clasifica(Lista,Positivas,Negativas):-
+    clasifica(Lista,[],[],Positivas,NegativasPositivas),
+    niega_lista(NegativasPositivas,Negativas).
+
+/*
  * clasifica(Lista,PositivasEncontradas,NegativasEncontradas,PositivasEncontradas,NegativasEncontradas)
  *
  * Categoriza las propiedades o relaciones de Lista en Negativas y
