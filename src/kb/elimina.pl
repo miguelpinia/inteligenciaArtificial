@@ -29,7 +29,7 @@ elimina_objeto(KB, Objeto, NuevaKB) :-
 % FIXME: Este predicado debe moverse a un módulo util, ya que también
 % va a ser utilizado por los predicados de modificación.
 modifica_nombre_de_clase_a_objeto(KB, Objeto, NuevaClase, NuevaKB) :-
-    obten_objeto(Objeto, objeto(Objeto, Clase, Props, Rels)),
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, NuevaClase, Props, Rels),
               NuevaKB).
