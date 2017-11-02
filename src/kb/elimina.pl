@@ -21,7 +21,7 @@ elimina_objeto_de_clase(KB, Objeto, Clase, NuevaKB) :-
 elimina_objeto(KB, Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     elimina_objeto_de_clase(KB, Objeto, Clase, NKB),
-    select(objeto(Objeto, Clase, Props, Rels), NKB, NuevaKB).
+    select(objeto(Objeto, Clase, Props, Rels), NKB, NuevaKB), !.
 
 /*
  * Modifica el nombre de clase a un objeto.
@@ -200,7 +200,12 @@ elimina_propiedad_de_clase(KB, Clase, Prop, NuevaKB) :-
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, NProps, Rels, Objs),
               NuevaKB), !.
-
+/*
+ * Elimina la relación Rel del objeto Objeto y almacena el resultado
+ * en NuevaKB.
+ * ?- kb(KB), elimina_relacion_de_objeto(KB, gira1, mas_bella_que=>gira2, NKB), obten_objeto(KB, gira1, Anterior), obten_objeto(NKB, gira1, Nuevo).
+ * ?- kb(KB), elimina_relacion_de_objeto(KB, r3, odiada_por=>r1, NKB), obten_objeto(KB, r3, Anterior), obten_objeto(NKB, r3, Nuevo).
+ */
 elimina_relacion_de_objeto(KB, Objeto, Rel, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     elimina_relacion_de_relaciones(Rel, Rels, NRels),
