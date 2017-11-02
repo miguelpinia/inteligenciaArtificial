@@ -50,7 +50,7 @@ modifica_nombre_de_clase_a_objetos(KB, [Objeto|Objetos], Clase, NuevaKB) :-
 % FIXME: Este predicado debe moverse a un módulo util, ya que también
 % va a ser utilizado por los predicados de modificación.
 modifica_nombre_de_superclase_a_clase(KB, Clase, NuevaSuperClase, NuevaKB) :-
-    obten_clase(Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
+    obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, NuevaSuperClase, Props, Rels, Objs),
               NuevaKB).
