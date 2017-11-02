@@ -1,6 +1,17 @@
 :- [consulta, agrega].
 
 /*
+ * Predicados principales:
+ *
+ * ?- elimina_objeto(KB, Objeto, NuevaKB)
+ * ?- elimina_clase(KB, AEliminar, NuevaKB)
+ * ?- elimina_propiedad_de_objeto(KB, Prop, Objeto, NuevaKB)
+ * ?- elimina_propiedad_de_clase(KB, Prop, Clase, NuevaKB)
+ * ?- elimina_relacion_de_objeto(KB, Rel, Objeto, NuevaKB)
+ * ?- elimina_relacion_de_clase(KB, Rel, Clase, NuevaKB)
+ */
+
+/*
  * Dado un objeto y una clase, elimina el objeto de la lista de
  * objetos de la clase dada.
  */
@@ -172,17 +183,17 @@ elimina_clase(KB, AEliminar, NuevaKB) :-
 
 /*
  * Elimina la propiedad Prop de un objeto.
- * kb(KB), elimina_propiedad_de_objeto(KB, r1, color=>blanco, NKB), obten_objeto(KB, r1, Anterior), obten_objeto(NKB, r1, Nuevo). <- No debe cambiar el objeto.
- * ?- kb(KB), elimina_propiedad_de_objeto(KB, r1, color=>rojo, NKB), obten_objeto(KB, r1, Anterior), obten_objeto(NKB, r1, Nuevo).
- * ?- kb(KB), elimina_propiedad_de_objeto(KB, gira1, alias=>rojito, NKB), obten_objeto(KB, gira1, Anterior), obten_objeto(NKB, gira1, Nuevo).
- * ?- kb(KB), elimina_propiedad_de_objeto(KB, gira1, not(color=>amarillo), NKB), obten_objeto(KB, gira1, Anterior), obten_objeto(NKB, gira1, Nuevo).
- * ?- kb(KB), elimina_propiedad_de_objeto(KB, gira2, alias=>udf, NKB), obten_objeto(KB, gira2, Anterior), obten_objeto(NKB, gira2, Nuevo).
- * ?- kb(KB), elimina_propiedad_de_objeto(KB, def, not(movil), NKB), obten_objeto(KB, def, Anterior), obten_objeto(NKB, def, Nuevo). <- no hacerle nada al objeto.
- * ?- kb(KB), elimina_propiedad_de_objeto(KB, def, not(agresivo), NKB), obten_objeto(KB, def, Anterior), obten_objeto(NKB, def, Nuevo).
- * ?- kb(KB), elimina_propiedad_de_objeto(KB, def, movil, NKB), obten_objeto(KB, def, Anterior), obten_objeto(NKB, def, Nuevo).
- * ?- kb(KB), elimina_propiedad_de_objeto(KB, r2, movil, NKB), obten_objeto(KB, r2, Anterior), obten_objeto(NKB, r2, Nuevo).
+ * kb(KB), elimina_propiedad_de_objeto(KB, color=>blanco, r1, NKB), obten_objeto(KB, r1, Anterior), obten_objeto(NKB, r1, Nuevo). <- No debe cambiar el objeto.
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, color=>rojo, r1, NKB), obten_objeto(KB, r1, Anterior), obten_objeto(NKB, r1, Nuevo).
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, alias=>rojito, gira1, NKB), obten_objeto(KB, gira1, Anterior), obten_objeto(NKB, gira1, Nuevo).
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, not(color=>amarillo), gira1, NKB), obten_objeto(KB, gira1, Anterior), obten_objeto(NKB, gira1, Nuevo).
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, alias=>udf, gira2, NKB), obten_objeto(KB, gira2, Anterior), obten_objeto(NKB, gira2, Nuevo).
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, not(movil), def, NKB), obten_objeto(KB, def, Anterior), obten_objeto(NKB, def, Nuevo). <- no hacerle nada al objeto.
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, not(agresivo), def, NKB), obten_objeto(KB, def, Anterior), obten_objeto(NKB, def, Nuevo).
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, movil, def, NKB), obten_objeto(KB, def, Anterior), obten_objeto(NKB, def, Nuevo).
+ * ?- kb(KB), elimina_propiedad_de_objeto(KB, movil, r2, NKB), obten_objeto(KB, r2, Anterior), obten_objeto(NKB, r2, Nuevo).
  */
-elimina_propiedad_de_objeto(KB, Objeto, Prop, NuevaKB) :-
+elimina_propiedad_de_objeto(KB, Prop, Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     elimina_propiedad_de_propiedades(Prop, Props, NProps),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
@@ -192,9 +203,9 @@ elimina_propiedad_de_objeto(KB, Objeto, Prop, NuevaKB) :-
 /*
  * Elimina la propiedad Prop de la clase Clase, y almacena el
  * resultado en NuevaKB.
- * kb(KB), elimina_propiedad_de_clase(KB, rosa, bonita, NKB), obten_clase(KB, rosa, Anterior), obten_clase(NKB, rosa, Nuevo).
+ * kb(KB), elimina_propiedad_de_clase(KB, bonita, rosa, NKB), obten_clase(KB, rosa, Anterior), obten_clase(NKB, rosa, Nuevo).
  */
-elimina_propiedad_de_clase(KB, Clase, Prop, NuevaKB) :-
+elimina_propiedad_de_clase(KB, Prop, Clase, NuevaKB) :-
     obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
     elimina_propiedad_de_propiedades(Prop, Props, NProps),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
@@ -203,17 +214,17 @@ elimina_propiedad_de_clase(KB, Clase, Prop, NuevaKB) :-
 /*
  * Elimina la relación Rel del objeto Objeto y almacena el resultado
  * en NuevaKB.
- * ?- kb(KB), elimina_relacion_de_objeto(KB, gira1, mas_bella_que=>gira2, NKB), obten_objeto(KB, gira1, Anterior), obten_objeto(NKB, gira1, Nuevo).
- * ?- kb(KB), elimina_relacion_de_objeto(KB, r3, odiada_por=>r1, NKB), obten_objeto(KB, r3, Anterior), obten_objeto(NKB, r3, Nuevo).
+ * ?- kb(KB), elimina_relacion_de_objeto(KB, mas_bella_que=>gira2, gira1, NKB), obten_objeto(KB, gira1, Anterior), obten_objeto(NKB, gira1, Nuevo).
+ * ?- kb(KB), elimina_relacion_de_objeto(KB, odiada_por=>r1, r3, NKB), obten_objeto(KB, r3, Anterior), obten_objeto(NKB, r3, Nuevo).
  */
-elimina_relacion_de_objeto(KB, Objeto, Rel, NuevaKB) :-
+elimina_relacion_de_objeto(KB, Rel, Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     elimina_relacion_de_relaciones(Rel, Rels, NRels),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, Props, NRels),
               NuevaKB), !.
 
-elimina_relacion_de_clase(KB, Clase, Rel, NuevaKB) :-
+elimina_relacion_de_clase(KB, Rel, Clase, NuevaKB) :-
     obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objetos)),
     elimina_relacion_de_relaciones(Rel, Rels, NRels),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objetos),
