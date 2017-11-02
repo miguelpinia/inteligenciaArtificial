@@ -7,6 +7,7 @@
 */
 
 % TODO: Al agregar la negación de un predicado o relación, eliminar el predicado que no estaba negado de la lista de propiedades o relaciones.
+% TODO: Al agregar propiedades o relaciones, checar el tipo.
 
 /*
  * Agrega el objeto a la lista de objetos de la clase Clase,
@@ -52,8 +53,10 @@ agrega_clase(KB, Clase, SuperClase, Propiedades, Relaciones, Objetos, NuevaKB) :
  * ?- agrega_valor_a_lista([5], [1, 2, 3, 4], Res).
  */
 agrega_valor_a_lista(Val, Vals, NVals) :-
-    (not(is_list(Val)), append([Val], Vals, NVals), !);
-    (is_list(Val), append(Val, Vals, NVals), !).
+    (not(is_list(Val)), ((is_list(Vals), append([Val], Vals, NVals));
+                         (not(is_list(Vals)), append([Val], [Vals], NVals))), !);
+    (is_lista(Val), ((is_list(Vals), append(Val, Vals, NVals));
+                     (not(is_list(Vals)), append(Val, [Vals], NVals))), !).
 
 /*
  * Dado un elemento de la forma not(foo=>bar), foo=>bar ó foo, agrega
@@ -65,11 +68,9 @@ agrega_valor_a_lista(Val, Vals, NVals) :-
  * ?- agrega_elemento_a_lista(hate, [hate=>[human]], Res).
  */
 agrega_elemento_a_lista(not(Elemento=>Val), Elementos, NElementos) :-
-    (is_list(Val), append([not(Elemento=>Val)], Elementos, NElementos), !);
-    (not(is_list(Val)), append([not(Elemento=>[Val])], Elementos, NElementos), !).
+    is_list(Val), append([not(Elemento=>Val)], Elementos, NElementos), !.
 agrega_elemento_a_lista(Elemento=>Val, Elementos, NElementos) :-
-    (is_list(Val), append([Elemento=>Val], Elementos, NElementos), !);
-     (not(is_list(Val)), append([Elemento=>[Val]], Elementos, NElementos), !).
+    is_list(Val), append([Elemento=>Val], Elementos, NElementos), !.
 agrega_elemento_a_lista(not(Elemento), Elementos, NElementos) :-
     append([not(Elemento)], Elementos, NElementos), !.
 agrega_elemento_a_lista(Elemento, Elementos, NElementos) :-
