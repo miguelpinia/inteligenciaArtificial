@@ -3,6 +3,36 @@
  */
 :- op(800,xfx,'=>').
 
+
+/*
+ * extiendePropiedades(Originales,Extendidas) 
+ * true si Extendidas es la lista que convierte las propiedades simples de la sigueinte forma:
+ * Reemplaza las propiedades simples por su forma extendida.
+ * Atr por Atr=>si
+ * not(Atr) por Atr=>no
+ * as demás quedan igual.
+ */
+
+
+    
+extiendePropiedades([],[]):-!.
+
+extiendePropiedades([not(Atr=>Val)|Props],[not(Atr=>Val)|ExtProps]):-
+    extiendePropiedades(Props,ExtProps),
+    !.
+
+extiendePropiedades([Atr=>Val|Props],[Atr=>Val|ExtProps]):-
+    extiendePropiedades(Props,ExtProps),
+    !.
+
+extiendePropiedades([not(Prop)|Props],[Prop=>no|[not(Prop=>si)|ExtProps]]):-
+    extiendePropiedades(Props,ExtProps),
+    !.
+
+extiendePropiedades([Prop|Props],[Prop=>si|[not(Prop=>no)|ExtProps]]):-
+    extiendePropiedades(Props,ExtProps),
+    !.
+
 /*
  * primera(X,Lista,Y)
  *
