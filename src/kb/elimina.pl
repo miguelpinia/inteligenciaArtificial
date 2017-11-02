@@ -168,7 +168,7 @@ elimina_clase(KB, AEliminar, NuevaKB) :-
     modifica_nombre_de_superclase_a_clases(NKBObjs, Hijos, SuperClase, NKBCls),
     agrega_lista_de_objetos_a_clase(NKBCls, SuperClase, Objs, NKB),
     elimina_clase_de_relaciones(NKB, AEliminar, NKB1),
-    select(clase(AEliminar, SuperClase, Props, Rels, Objs), NKB1, NuevaKB).
+    select(clase(AEliminar, SuperClase, Props, Rels, Objs), NKB1, NuevaKB), !.
 
 /*
  * Elimina la propiedad Prop de un objeto.
