@@ -1,3 +1,4 @@
+
 :- [util].
 /*
  * Predicados principales:
@@ -24,11 +25,13 @@ kb([clase(top, none, [], [], []),
     clase(perro, animal, [canino], [odia=>[gato], not(ama=>[girasol])], [abc, def]),
     objeto(abc, perro, [agresivo, alias=>[diablo]], [muerde=>[r1, r2], huele=>[r3], ama=>[def]]),
     objeto(def, perro, [not(agresivo), alias=>[fido, bueno]], [not(odia=>[gato]), odia=>[ardilla]]),
-    clase(gato, animal, [felino], [huye=>[perro]], []),
+    clase(gato, animal, [felino], [huye=>[perro]], [g1, g2]),
+    objeto(g1, gato, [], []),
+    objeto(g2, gato, [], []),
     clase(vegetal,top,	[not(movil), not(color=>negro)], [es_comida_por=>[animal], olida_por=>[perro]], []),
     clase(girasol,vegetal, [movil, color=>[amarillo, rojo]],[not(es_comida_por=>[animal])], [gira1, gira2]),
     objeto(gira1,girasol,[color=>rojo,not(color=>amarillo),alias=>[rojito,chulote]],[mas_bella_que=>[gira2, r2, gato]]),
-    objeto(gira2,girasol,[alias=>[udf]],[]),
+    objeto(gira2,girasol,[alias=>[udf]],[odiado_por=>[gato]]),
     clase(rosa, vegetal, [bonita,color=>udf], [mas_bella_que=>[girasol]], [r1,r2,r3]),
     objeto(r1,rosa,[color=>rojo],[]),
     objeto(r2,rosa,[movil],[]),
