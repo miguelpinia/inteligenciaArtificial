@@ -55,7 +55,7 @@ agrega_clase(KB, Clase, SuperClase, Propiedades, Relaciones, Objetos, NuevaKB) :
 agrega_valor_a_lista(Val, Vals, NVals) :-
     (not(is_list(Val)), ((is_list(Vals), append([Val], Vals, NVals));
                          (not(is_list(Vals)), append([Val], [Vals], NVals))), !);
-    (is_lista(Val), ((is_list(Vals), append(Val, Vals, NVals));
+    (is_list(Val), ((is_list(Vals), append(Val, Vals, NVals));
                      (not(is_list(Vals)), append(Val, [Vals], NVals))), !).
 
 /*
