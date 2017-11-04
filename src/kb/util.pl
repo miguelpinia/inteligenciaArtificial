@@ -5,7 +5,7 @@
 
 
 /*
- * extiendePropiedades(Originales,Extendidas) 
+ * extiendePropiedades(Originales,Extendidas)
  * true si Extendidas es la lista que convierte las propiedades simples de la sigueinte forma:
  * Reemplaza las propiedades simples por su forma extendida.
  * Atr por Atr=>si
@@ -14,7 +14,7 @@
  */
 
 
-    
+
 extiendePropiedades([],[]):-!.
 
 extiendePropiedades([not(Atr=>Val)|Props],[not(Atr=>Val)|ExtProps]):-
@@ -131,7 +131,9 @@ niega_lista([],[]).
  */
 
 fusiona(Lista,ListaFusionada):-
-    clasifica(Lista,Positivas,Negativas),
+    clasifica(Lista,Positivas_,Negativas_),
+    delete(Positivas_,_=>[],Positivas),
+    delete(Negativas_,not(_=>[]),Negativas),
     append(Positivas,Negativas,ListaFusionada).
 
 /*
