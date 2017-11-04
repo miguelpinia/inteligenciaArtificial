@@ -32,36 +32,65 @@ elimina_objeto_de_clase(KB, Objeto, Clase, NuevaKB) :-
 elimina_objeto(KB, Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     elimina_objeto_de_clase(KB, Objeto, Clase, NKB),
-    select(objeto(Objeto, Clase, Props, Rels), NKB, NuevaKB), !.
+    elimina_objeto_de_relaciones(NKB, Objeto, NKB1),
+    select(objeto(Objeto, Clase, Props, Rels), NKB1, NuevaKB), !.
+
+
+elimina_objeto_de_relaciones_de_objeto(KB, Objeto, AEliminar, NuevaKB) :-
+    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
+    elimina_elemento_de_lista(Rels,AEliminar, NRels),
+    reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
+              objeto(Objeto, Clase, Props, NRels),
+              NuevaKB).
+elimina_objeto_de_relaciones_de_objetos(KB, [], _, KB) :- !.
+elimina_objeto_de_relaciones_de_objetos(KB, [Objeto|Objetos], AEliminar, NuevaKB) :-
+    elimina_objeto_de_relaciones_de_objeto(KB, Objeto, AEliminar, NKB),
+    elimina_objeto_de_relaciones_de_objetos(NKB, Objetos, AEliminar, NuevaKB).
+elimina_objeto_de_relaciones_de_clase(KB, Clase, AEliminar, NuevaKB) :-
+    obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
+    elimina_elemento_de_lista(Rels, AEliminar, NRels),
+    reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
+              clase(Clase, SuperClase, Props, NRels, Objs),
+              NuevaKB).
+elimina_objeto_de_relaciones_de_clases(KB, [], _, KB) :- !.
+elimina_objeto_de_relaciones_de_clases(KB, [Clase|Clases], AEliminar, NuevaKB) :-
+    elimina_objeto_de_relaciones_de_clase(KB, Clase, AEliminar, NKB),
+    elimina_objeto_de_relaciones_de_clases(NKB, Clases, AEliminar, NuevaKB).
+elimina_objeto_de_relaciones(KB, AEliminar, NuevaKB) :-
+    extension_de_clase(KB, top, Objetos),
+    elimina_objeto_de_relaciones_de_objetos(KB, Objetos, AEliminar, NKB),
+    subclases(NKB, top, SubClases),
+    elimina_clase_de_relaciones_de_clases(NKB, SubClases, AEliminar, NuevaKB).
+
 
 /*
  * Dada una clase y una lista de relaciones, elimina la relación de la lista de relaciones
- * ?- elimina_clase_de_lista([odia=>[gato]], gato, X).
- * ?- elimina_clase_de_lista([odia=>[gato, foo], not(ama=>[gato, perro, avestruz]), alimenta=>[gato]], gato, X).
- * ?- elimina_clase_de_lista([odia=>[gato, foo], not(ama=>[gato, perro, avestruz])], gato, X).
- * ?- elimina_clase_de_lista([odia=>[gato, foo], ama=>[gato, perro, avestruz]], gato, X).
- * ?- elimina_clase_de_lista([odia=>[gato, foo], ama=>[gato, perro]], gato, X).
- * ?- elimina_clase_de_lista([not(odia=>[gato]), odia=>[ardilla]], gato, X).
+ * ?- elimina_elemento_de_lista([odia=>[gato]], gato, X).
+ * ?- elimina_elemento_de_lista([odia=>[gato, foo], not(ama=>[gato, perro, avestruz]), alimenta=>[gato]], gato, X).
+ * ?- elimina_elemento_de_lista([odia=>[gato, foo], not(ama=>[gato, perro, avestruz])], gato, X).
+ * ?- elimina_elemento_de_lista([odia=>[gato, foo], ama=>[gato, perro, avestruz]], gato, X).
+ * ?- elimina_elemento_de_lista([odia=>[gato, foo], ama=>[gato, perro]], gato, X).
+ * ?- elimina_elemento_de_lista([not(odia=>[gato]), odia=>[ardilla]], gato, X).
 */
-elimina_clase_de_lista([], _, []) :- !.
-elimina_clase_de_lista([_=>[Clase]], Clase, []) :- !.
-elimina_clase_de_lista([Rel=>Vals], Clase, [Result]) :-
-    elimina_de_valores_de_relacion(Rel=>Clase, Rel=>Vals, Result).
-elimina_clase_de_lista([not(_=>[Clase])], Clase, []) :- !.
-elimina_clase_de_lista([not(Rel=>Vals)], Clase, [Result]) :-
-    elimina_de_valores_de_relacion(not(Rel=>Clase), not(Rel=>Vals), Result).
-elimina_clase_de_lista([_=>[Clase]|OtrasRels], Clase, Result) :-
-    elimina_clase_de_lista(OtrasRels, Clase, Result).
-elimina_clase_de_lista([Rel=>Vals|OtrasRels], Clase, [R|Result]) :-
-    elimina_de_valores_de_relacion(Rel=>Clase, Rel=>Vals, R),
-    elimina_clase_de_lista(OtrasRels, Clase, Result).
-elimina_clase_de_lista([not(_=>[Clase])|OtrasRels], Clase, Result) :-
-    elimina_clase_de_lista(OtrasRels, Clase, Result).
-elimina_clase_de_lista([not(Rel=>Vals)|OtrasRels], Clase, [R|Result]) :-
-    elimina_de_valores_de_relacion(not(Rel=>Clase), not(Rel=>Vals), R),
-    elimina_clase_de_lista(OtrasRels, Clase, Result).
-elimina_clase_de_lista([OtraRel|Rels], _, [OtraRel|Rels]) :- !.
-elimina_clase_de_lista([X], _, [X]) :- !.
+elimina_elemento_de_lista([], _, []) :- !.
+elimina_elemento_de_lista([_=>[Elemento]], Elemento, []) :- !.
+elimina_elemento_de_lista([Rel=>Vals], Elemento, [Result]) :-
+    elimina_de_valores_de_relacion(Rel=>Elemento, Rel=>Vals, Result).
+elimina_elemento_de_lista([not(_=>[Elemento])], Elemento, []) :- !.
+elimina_elemento_de_lista([not(Rel=>Vals)], Elemento, [Result]) :-
+    elimina_de_valores_de_relacion(not(Rel=>Elemento), not(Rel=>Vals), Result).
+elimina_elemento_de_lista([_=>[Elemento]|OtrasRels], Elemento, Result) :-
+    elimina_elemento_de_lista(OtrasRels, Elemento, Result).
+elimina_elemento_de_lista([Rel=>Vals|OtrasRels], Elemento, [R|Result]) :-
+    elimina_de_valores_de_relacion(Rel=>Elemento, Rel=>Vals, R),
+    elimina_elemento_de_lista(OtrasRels, Elemento, Result).
+elimina_elemento_de_lista([not(_=>[Elemento])|OtrasRels], Elemento, Result) :-
+    elimina_elemento_de_lista(OtrasRels, Elemento, Result).
+elimina_elemento_de_lista([not(Rel=>Vals)|OtrasRels], Elemento, [R|Result]) :-
+    elimina_de_valores_de_relacion(not(Rel=>Elemento), not(Rel=>Vals), R),
+    elimina_elemento_de_lista(OtrasRels, Elemento, Result).
+elimina_elemento_de_lista([OtraRel|Rels], _, [OtraRel|Rels]) :- !.
+elimina_elemento_de_lista([X], _, [X]) :- !.
 /*
  * Dada una clase y un objeto, elimina la clase de la lista de
  * relaciones de un objeto.
@@ -69,7 +98,7 @@ elimina_clase_de_lista([X], _, [X]) :- !.
  */
 elimina_clase_de_relaciones_de_objeto(KB, Objeto, AEliminar, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
-    elimina_clase_de_lista(Rels,AEliminar, NRels),
+    elimina_elemento_de_lista(Rels,AEliminar, NRels),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, Props, NRels),
               NuevaKB).
@@ -90,7 +119,7 @@ elimina_clase_de_relaciones_de_objetos(KB, [Objeto|Objetos], AEliminar, NuevaKB)
  */
 elimina_clase_de_relaciones_de_clase(KB, Clase, AEliminar, NuevaKB) :-
     obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
-    elimina_clase_de_lista(Rels, AEliminar, NRels),
+    elimina_elemento_de_lista(Rels, AEliminar, NRels),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, Props, NRels, Objs),
               NuevaKB).
