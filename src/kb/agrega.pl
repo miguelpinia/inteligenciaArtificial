@@ -153,7 +153,7 @@ agrega_relacion_a_objeto(KB, not(Rel=>Val), Objeto, NuevaKB) :-
     agrega_elemento_a_lista(not(Rel=>Val), Rels, NRels),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, Props, NRels),
-              NuevaKB).
+              NuevaKB),!.
 agrega_relacion_a_objeto(KB, Rel=>Val, Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     tiene_relacion_nombre(Rel, Rels),
@@ -170,7 +170,7 @@ agrega_relacion_a_objeto(KB, Rel=>Val, Objeto, NuevaKB) :-
     agrega_elemento_a_lista(Rel=>Val, Rels, NRels),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, Props, NRels),
-              NuevaKB).
+              NuevaKB),!.
 
 /*
  * Agrega la propiedad dada a la clase Clase. Si el valor de la
