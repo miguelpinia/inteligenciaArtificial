@@ -1,0 +1,19 @@
+[
+    clase(top, none, [], [], []),
+    clase(animal, top, [], [], []),
+    clase(mammal, animal, [has_legs,not(can_fly)], [], []),
+    clase(mouse, mammal, [has_legs,not(can_fly)], [], [mickey,timothy]),
+    objeto(mickey,mouse,[],[]),
+    objeto(timothy,mouse,[],[]),
+    clase(whale, mammal, [not(has_legs)], [], [monstro]),
+    objeto(monstro,whale,[],[hate=>[human]]),
+    clase(elephant, mammal, [], [hate=>[mouse]], ['Mrs Jumbo',dumbo]),
+    objeto('Mrs Jumbo',elephant,[],[]),
+    objeto(dumbo,elephant,[can_fly],[hate=>['the ringmaster']]),
+    clase(human, mammal, [], [hate=>[monstro]], [geppeto,'the ringmaster']),
+    objeto(geppeto, human, [], [inside=>[monstro]]),
+    objeto('the ringmaster', human, [], []),
+    clase(machine, top, [], [], []),
+    clase(toy, machine, [], [], [pinocchio]),
+    objeto(pinocchio, toy, [], [])
+]
