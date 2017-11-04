@@ -1,4 +1,4 @@
-:- [consulta, agrega].
+:- [consulta, agrega, modifica].
 
 /*
  * Predicados principales:
@@ -33,57 +33,6 @@ elimina_objeto(KB, Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     elimina_objeto_de_clase(KB, Objeto, Clase, NKB),
     select(objeto(Objeto, Clase, Props, Rels), NKB, NuevaKB), !.
-
-/*
- * Modifica el nombre de clase a un objeto.
- */
-% FIXME: Este predicado debe moverse a un módulo util, ya que también
-% va a ser utilizado por los predicados de modificación.
-modifica_nombre_de_clase_a_objeto(KB, Objeto, NuevaClase, NuevaKB) :-
-    obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
-    reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
-              objeto(Objeto, NuevaClase, Props, Rels),
-              NuevaKB).
-
-/*
- * Modifica el nombre de la clase de una lista de objetos.
- */
-% FIXME: Este predicado debe moverse a un módulo util, ya que también
-% va a ser utilizado por los predicados de modificación.
-modifica_nombre_de_clase_a_objetos(KB, [], _, KB) :- !.
-modifica_nombre_de_clase_a_objetos(KB, [Objeto|Objetos], Clase, NuevaKB) :-
-    modifica_nombre_de_clase_a_objeto(KB, Objeto, Clase, NKB),
-    modifica_nombre_de_clase_a_objetos(NKB, Objetos, Clase, NuevaKB).
-
-/*
- * Modifica EL nombre de la superclase a una clase.
- */
-% FIXME: Este predicado debe moverse a un módulo util, ya que también
-% va a ser utilizado por los predicados de modificación.
-modifica_nombre_de_superclase_a_clase(KB, Clase, NuevaSuperClase, NuevaKB) :-
-    obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
-    reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
-              clase(Clase, NuevaSuperClase, Props, Rels, Objs),
-              NuevaKB).
-
-/*
- * Modifica el nombre de la superclase de una lista de clases.
- */
-% FIXME: Este predicado debe moverse a un módulo util, ya que también
-% va a ser utilizado por los predicados de modificación.
-modifica_nombre_de_superclase_a_clases(KB, [], _, KB) :- !.
-modifica_nombre_de_superclase_a_clases(KB, [Clase|Clases], NuevaSuperClase, NuevaKB) :-
-    modifica_nombre_de_superclase_a_clase(KB, Clase, NuevaSuperClase, NKB),
-    modifica_nombre_de_superclase_a_clases(NKB, Clases, NuevaSuperClase, NuevaKB).
-
-/*
- * Agrega una lista de objetos a una clase.
- */
-% FIXME: Mover al módulo de agrega.pl.
-agrega_lista_de_objetos_a_clase(KB, _,  [], KB) :- !.
-agrega_lista_de_objetos_a_clase(KB, Clase, [Objeto|Objetos], NuevaKB) :-
-    agrega_objeto_a_clase(KB, Clase, Objeto, NKB),
-    agrega_lista_de_objetos_a_clase(NKB, Clase, Objetos, NuevaKB).
 
 /*
  * Dada una clase y una lista de relaciones, elimina la relación de la lista de relaciones
@@ -174,12 +123,11 @@ elimina_clase_de_relaciones(KB, AEliminar, NuevaKB) :-
 elimina_clase(_, top, _) :- fail.
 elimina_clase(KB, AEliminar, NuevaKB) :-
     obten_clase(KB, AEliminar, clase(AEliminar, SuperClase, Props, Rels, Objs)),
-    modifica_nombre_de_clase_a_objetos(KB, Objs, SuperClase, NKBObjs),
+    modifica_nombre_de_clase_a_objetos(KB, SuperClase, Objs, NKBObjs),
     subclases_directas(NKBObjs, AEliminar, Hijos),
-    modifica_nombre_de_superclase_a_clases(NKBObjs, Hijos, SuperClase, NKBCls),
-    agrega_lista_de_objetos_a_clase(NKBCls, SuperClase, Objs, NKB),
+    modifica_nombre_de_superclase_a_clases(NKBObjs, SuperClase, Hijos, NKB),
     elimina_clase_de_relaciones(NKB, AEliminar, NKB1),
-    select(clase(AEliminar, SuperClase, Props, Rels, Objs), NKB1, NuevaKB), !.
+    select(clase(AEliminar, SuperClase, Props, Rels, []), NKB1, NuevaKB), !.
 
 /*
  * Elimina la propiedad Prop de un objeto.
