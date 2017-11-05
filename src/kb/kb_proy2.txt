@@ -1,0 +1,68 @@
+[
+    clase(top,none,[],[],[golem,realidad,recompensa,probabilidad,costo]),
+    /*
+    * El objeto golem de la clase top guarda el estado del robot,
+    * su posición
+    * lo que lleva en el brazo izquierdo
+    * lo que lleva en el brazo derecho
+    * la lista de creencias obj=>loc
+    * la lista de observaciones obj=>loc
+    */
+    objeto(golem,top,[
+        /* La posición actual de golem en los diferentes lugares*/
+        pos=>mostrador,
+        /* Lo que tiene en su brazo izquierdo*/
+        izq=>none,
+        /* Lo que tiene en su brazo derecho*/
+        der=>none,
+        /* La lista de objeto=>lugar en donde golem cree que estan los objetos */
+        cree=>[coca=>drinks,heineken=>drinks,noodles=>food,bisquits=>bread],
+        /* Los objetos que ha movido el robot se deben distinguir en el diagnóstico
+         * Esta lista guardará donde los encontró originalmente
+         */
+        movidos=>[],
+        /* La lista de objeto=>lugar ya observados */
+        obs=>[]
+    ],[]),
+    objeto(realidad,top,[
+        acomodo=>[coca=>bread,heineken=>drinks,noodles=>drinks,bisquits=>bread,kellogs=>food]
+    ],[]),
+    /* Aqui definimos clases y objetos con caracteristicas
+     * Creamos una superclase por estante y como subclases una por cada tipo de producto que se acomode en el estante, 
+     * luego un objeto por cada producto (puede haber mas de uno de un mismo producto)
+     */
+    /*LAS BEBIDAS*/
+    clase(bebida,top,[],[loc=>drink_shelf],[]),
+    clase(refresco,bebida,[],[],[coca]),
+    objeto(coca,refresco,[],[]),
+    clase(cerveza,bebida,[],[],[heineken]),
+    objeto(heineken,cerveza,[],[]),
+    /* LA COMIDA */
+    clase(food,top,[],[loc=>food_shelf],[]),
+    clase(cereal,food,[],[],[kellogs]),
+    objeto(kellogs,cereal,[],[]),
+    clase(sopa,food,[],[],[noodles]),
+    objeto(noodles,sopa,[],[]),
+    /* EL PAN */
+    clase(bread,top,[],[loc=>bread_shelf],[]),
+    clase(galletas,bread,[],[],[bisquits]),
+    objeto(bisquits,galletas,[],[]),
+
+    /* ACCIONES
+     * Aqui definimos el costo,recompensa,y probabilidad
+     * OBSERVACION accion corresponde a la acción en caso general
+     * accion_ correspondería a la acción aplicada a objeto(s) particulares
+     * por ejemplo se puede tener el caso particular de que la recompensa de moverse food_shelf al mostrador es diferente a las demás
+     * Pondríamos en la base mover_(food_shelf,mostrador)=>0.8 como propiedad del objeto r 
+     * y la siguiente consulta obtendría el costo, probabilidad y recompensa respectivo.
+     * ?- open_kb('kb_proy2.txt',KB),extension_de_propiedad_(KB,mover_(food_shelf,mostrador),Ans1),extension_de_propiedad_(KB,mover(food_shelf,mostrador),Ans2),append(Ans1,Ans2,Lista),fusiona(Lista,Fusionada),imprime(Fusionada),nl.
+     *c=>1
+     *p=>0.9
+     *r=>0.8
+     *...
+     *Fusionada = [c=>1, p=>0.9, r=>0.8].
+     */
+    objeto(r,top,[mover_(food_shelf,mostrador)=>0.8,mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1],[]),
+    objeto(p,top,[mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9],[]),
+    objeto(c,top,[mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1],[])
+]
