@@ -17,12 +17,14 @@
         der=>none,
         /* La lista de objeto=>lugar en donde golem cree que estan los objetos */
         cree=>[coca=>drinks,heineken=>drinks,noodles=>food,bisquits=>bread],
+        /* La lista de objeto=>lugar ya observados */
+        obs=>[],
         /* Los objetos que ha movido el robot se deben distinguir en el diagnóstico
          * Esta lista guardará donde los encontró originalmente
          */
         movidos=>[],
-        /* La lista de objeto=>lugar ya observados */
-        obs=>[]
+        /* Acciones pendientes entregar(Oi),reacomodar(Oi)*/
+        pendientes=>[]
     ],[]),
     objeto(realidad,top,[
         acomodo=>[coca=>bread,heineken=>drinks,noodles=>drinks,bisquits=>bread,kellogs=>food]
