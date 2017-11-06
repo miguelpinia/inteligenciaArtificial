@@ -309,3 +309,32 @@ clasifica([Atr|Restantes],PositivasEncontradas,NegativasEncontradas,Positivas,Ne
     !.
 clasifica([_|Restantes],PositivasEncontradas,NegativasEncontradas,Positivas,Negativas):-
     clasifica(Restantes,PositivasEncontradas,NegativasEncontradas,Positivas,Negativas).
+
+/*
+* Estructura para cola de prioridad en una lista
+* Agregar en PQ a key=>Value da como resultado NPQ
+* agrega_pq(PQ,key=>Value,NPQ)
+* Eliminar el valor Val de PQ da NPQ
+* elimina_pq(PQ,Val,NPQ)
+* Modficar la llave del valor Val por Key en PQ da NPQ,
+* Si no existe se agrega.
+* cambia_key_pq(PQ,Key=>Val,NPQ)
+*/
+
+agrega_pq([],key=>Val,[Key=>Val]):-!.
+
+agrega_pq([Lower=>Val|RPQ],key=>Value,[key=>Value|[Lower=>Val|RPQ]]):-
+    Key<=Lower,
+    !.
+
+agrega_pq([Lower=>Val|RPQ],key=>Value,[Lower=>Val|NRPQ]):-
+    agrega_pq(RPQ,key=>Value,NRPQ),
+    !.
+
+/* Elimina de PQ la aparición de Val*/
+elimina_pq(PQ,Val,NPQ):-
+    delete(PQ,_=>Val,NPQ).
+
+cambia_key_pq(PQ,Key=>Val,NPQ):-
+    elimina_pq(PQ,Val,NPQ1),
+    agrega_pq(NPQ1,Key=>Val,NPQ).
