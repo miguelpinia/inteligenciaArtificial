@@ -11,20 +11,16 @@
     objeto(golem,top,[
         /* La posición actual de golem en los diferentes lugares*/
         pos=>mostrador,
-        /* Lo que tiene en su brazo izquierdo*/
-        izq=>none,
-        /* Lo que tiene en su brazo derecho*/
-        der=>none,
         /* La lista de objeto=>lugar en donde golem cree que estan los objetos */
-        cree=>[coca=>drinks,heineken=>drinks,noodles=>food,bisquits=>bread],
+        cree=>val([coca=>drinks,heineken=>drinks,noodles=>food,bisquits=>bread]),
         /* La lista de objeto=>lugar ya observados */
-        obs=>[],
+        obs=>val([]),
         /* Los objetos que ha movido el robot se deben distinguir en el diagnóstico
          * Esta lista guardará donde los encontró originalmente
          */
-        movidos=>[],
+        movidos=>val([]),
         /* Acciones pendientes entregar(Oi),reacomodar(Oi)*/
-        pendientes=>[]
+        pendientes=>val([entregar(coca)])
     ],[]),
     /* Aqui definimos clases y objetos con caracteristicas
      * Creamos una superclase por estante y como subclases una por cada tipo de producto que se acomode en el estante, 
@@ -48,8 +44,16 @@
     objeto(bisquits,galletas,[],[]),
 
     /* POSICIONES */
-    clase(lugar,top,[],[],[mostrador]),
+    clase(lugar,top,[],[],[mostrador,inalcanzable]),
+    /* UN LUGAR PARA LAS COSAS NO ALCANZABLES*/
+    objeto(inalcanzable,lugar,[],[]),
+    /* El objeto mostrador*/
     objeto(mostrador,lugar,[],[]),
+    /* LOS BAZOS LOS CONSIDERAMOS LUGARES */
+    clase(brazo,lugar,[],[],[izq,der]),
+    objeto(izq,brazo,[],[]),
+    objeto(der,brazo,[],[]),
+    /* LOS ESTANTES DE LA TIENDA*/
     clase(estante,lugar,[not(observado)],[],[drink_shelf,food_shelf,bread_shelf]),
     objeto(drink_shelf,estante,[],[tiene=>[heineken,noodles]]),
     objeto(food_shelf,estante,[],[tiene=>[kellogs]]),

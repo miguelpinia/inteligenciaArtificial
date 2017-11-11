@@ -321,10 +321,10 @@ clasifica([_|Restantes],PositivasEncontradas,NegativasEncontradas,Positivas,Nega
 * cambia_key_pq(PQ,Key=>Val,NPQ)
 */
 
-agrega_pq([],key=>Val,[Key=>Val]):-!.
+agrega_pq([],Key=>Val,[Key=>Val]):-!.
 
-agrega_pq([Lower=>Val|RPQ],key=>Value,[key=>Value|[Lower=>Val|RPQ]]):-
-    Key<=Lower,
+agrega_pq([Lower=>Val|RPQ],Key=>Value,[key=>Value|[Lower=>Val|RPQ]]):-
+    Key=<Lower,
     !.
 
 agrega_pq([Lower=>Val|RPQ],key=>Value,[Lower=>Val|NRPQ]):-
