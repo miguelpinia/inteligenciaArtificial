@@ -1,5 +1,5 @@
 [
-    clase(top,none,[],[],[golem,realidad,recompensa,probabilidad,costo]),
+    clase(top,none,[],[],[golem,r,p,c]),
     /*
     * El objeto golem de la clase top guarda el estado del robot,
     * su posición
@@ -41,7 +41,7 @@
     /* EL PAN */
     clase(bread,top,[],[loc=>bread_shelf],[]),
     clase(galletas,bread,[],[],[bisquits]),
-    objeto(bisquits,galletas,[],[]),
+    objeto(bisquits,galletas,[not(alcanzable)],[]),
 
     /* POSICIONES */
     clase(lugar,top,[],[],[mostrador,inalcanzable]),
