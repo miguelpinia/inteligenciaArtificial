@@ -918,32 +918,3 @@ objeto_tiene_relacion(KB,Objeto,Rel,Valor):-
     relaciones_de_objeto(KB,Objeto,Rels),
     member(Rel=>Valor,Rels),
     !.
-
-/*
- * filtra_por_valores(ListaIdValor,Valor,ListaIdValorFiltrado)
- * ListaIdValorFiltrado esta formada por los elementos de ListaIdValor que tienen el valor especificado
- */
-
-filtra_por_valor([],_,[]):-!.
-
-filtra_por_valor([Atr=>Vals|Resto],Valor,[Atr=>Vals|RestoFiltrado]):-
-    ((is_list(Vals),member(Valor,Vals));(Vals = Valor)),
-    filtra_por_valor(Resto,Valor,RestoFiltrado),
-    !.
-
-filtra_por_valor([_|Resto],Valor,RestoFiltrado):-
-    filtra_por_valor(Resto,Valor,RestoFiltrado).
-
-/*
- * filtra_por_valores(ListaIdValor,Valor,ListaIdValorFiltrado)
- * ListaIdValorFiltrado esta formada por los elementos de ListaIdValor que tienen el valor especificado
- */
-
-filtra_por_atributo([],_,[]):-!.
-
-filtra_por_atributo([Atr=>Vals|Resto],Atr,[Atr=>Vals|RestoFiltrado]):-
-    filtra_por_atributo(Resto,Atr,RestoFiltrado),
-    !.
-
-filtra_por_atributo([_|Resto],Atr,RestoFiltrado):-
-    filtra_por_atributo(Resto,Atr,RestoFiltrado).

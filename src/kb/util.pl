@@ -46,24 +46,6 @@ primera(not(X), [not(X)|_], not(X)) :- !.
 primera(X, [Y|Tail], Z):-dif(X, Y),dif(not(X), Y),dif(X, not(Y)),primera(X, Tail, Z).
 
 /*
- * reemplaza(Lista,Actual,Nuevo,NuevaLista)
- *
- * Reemplazar todas las apariciones de Actual por Nuevo en Lista da
- * como resultado NuevaLista
- */
-
-/*
-* primera(X,Lista,Y)
-* Si la primera aparición de X en Lista es X entonces Y = X
-* Si la primera aparición de X en Lista es not(X) entonces Y = not(X)
-*/
-primera(X,[X|_],X):-!.
-primera(X,[not(X)|_],not(X)):-!.
-primera(not(X),[X|_],X):-!.
-primera(not(X),[not(X)|_],not(X)):-!.
-primera(X,[Y|Tail],Z):-dif(X,Y),dif(not(X),Y),dif(X,not(Y)),primera(X,Tail,Z).
-
-/*
 * reemplaza(Lista,Actual,Nuevo,NuevaLista)
 * Reemplazar todas las apariciones de Actual por Nuevo en Lista da como resultado NuevaLista
 */
@@ -338,3 +320,74 @@ elimina_pq(PQ,Val,NPQ):-
 cambia_key_pq(PQ,Key=>Val,NPQ):-
     elimina_pq(PQ,Val,NPQ1),
     agrega_pq(NPQ1,Key=>Val,NPQ).
+
+/*
+* Convierte una lista de Atr=>Valor a una lista de solamente los atributos
+* Ejemplo lista_de_atributos([a1=>v1,a2=>v2,...,an=>vn],[a1,a2,...,an])
+*/
+lista_de_atributos([Atr=>_|Resto],[Atr|AtrResto]):-
+    lista_de_atributos(Resto,AtrResto).
+
+lista_de_atributos([],[]).
+
+/*
+* Convierte una lista de Atr=>Valor a una lista de solamente los atributos
+* Ejemplo lista_de_atributos([a1=>v1,a2=>v2,...,an=>vn],[v1,v2,...,vn])
+*/
+lista_de_valores([_=>Valor|Resto],[Valor|ValorResto]):-
+    lista_de_valores(Resto,ValorResto).
+
+lista_de_valores([],[]).
+
+
+
+/*
+ * filtra_por_valores(ListaIdValor,Valor,ListaIdValorFiltrado)
+ * ListaIdValorFiltrado esta formada por los elementos de ListaIdValor que tienen el valor especificado
+ */
+
+filtra_por_valor([],_,[]):-!.
+
+filtra_por_valor([Atr=>Vals|Resto],Valor,[Atr=>Vals|RestoFiltrado]):-
+    ((is_list(Vals),member(Valor,Vals));(Vals = Valor)),
+    filtra_por_valor(Resto,Valor,RestoFiltrado),
+    !.
+
+filtra_por_valor([_|Resto],Valor,RestoFiltrado):-
+    filtra_por_valor(Resto,Valor,RestoFiltrado).
+
+/*
+ * filtra_por_valores(ListaIdValor,Valor,ListaIdValorFiltrado)
+ * ListaIdValorFiltrado esta formada por los elementos de ListaIdValor que tienen el valor especificado
+ */
+
+filtra_por_atributo([],_,[]):-!.
+
+filtra_por_atributo([Atr=>Vals|Resto],Atr,[Atr=>Vals|RestoFiltrado]):-
+    filtra_por_atributo(Resto,Atr,RestoFiltrado),
+    !.
+
+filtra_por_atributo([_|Resto],Atr,RestoFiltrado):-
+    filtra_por_atributo(Resto,Atr,RestoFiltrado).
+
+/*
+* Filtra por valores
+* filtra_por_valores(Lista,Valores,Filtrada)
+*/
+filtra_por_valores(Lista,[Valor|Resto],Filtrada):-
+    filtra_por_valor(Lista,Valor,FiltradaPorValor),
+    filtra_por_valores(Lista,Resto,FiltradaPorResto),
+    append(FiltradaPorValor,FiltradaPorResto,Filtrada).
+
+filtra_por_valores(_,[],[]).
+
+/*
+* Filtra por valores
+* filtra_por_valores(Lista,Valores,Filtrada)
+*/
+filtra_por_atributos(Lista,[Atr|Resto],Filtrada):-
+    filtra_por_atributo(Lista,Atr,FiltradaPorAtr),
+    filtra_por_atributos(Lista,Resto,FiltradaPorResto),
+    append(FiltradaPorAtr,FiltradaPorResto,Filtrada).
+
+filtra_por_atributos(_,[],[]).
