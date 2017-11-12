@@ -12,7 +12,7 @@
         /* La posición actual de golem en los diferentes lugares*/
         pos=>mostrador,
         /* La lista de objeto=>lugar en donde golem cree que estan los objetos */
-        cree=>val([coca=>drink_shelf,heineken=>drink_shelf,noodles=>food_shelf,bisquits=>bread_shelf]),
+        cree=>val([coca=>drink_shelf,heineken=>drink_shelf,noodles=>bread_shelf,bisquits=>bread_shelf]),
         /* La lista de objeto=>lugar ya observados */
         obs=>val([coca=>drink_shelf]),
         /* Los objetos que ha movido el robot se deben distinguir en el diagnóstico
@@ -22,9 +22,11 @@
         /* Acciones pendientes entregar(Oi),reacomodar(Oi)*/
         pendientes=>val([entregar(coca)])
     ],[]),
-    /* Aqui definimos clases y objetos con caracteristicas
-     * Creamos una superclase por estante y como subclases una por cada tipo de producto que se acomode en el estante, 
-     * luego un objeto por cada producto (puede haber mas de uno de un mismo producto)
+    /*
+     * Aqui definimos clases y objetos con caracteristicas Creamos una
+     * superclase por estante y como subclases una por cada tipo de
+     * producto que se acomode en el estante, luego un objeto por cada
+     * producto (puede haber mas de uno de un mismo producto)
      */
     /*LAS BEBIDAS*/
     clase(producto,top,[],[],[]),
@@ -61,12 +63,15 @@
     objeto(bread_shelf,estante,[],[tiene=>[coca,bisquits]]),
 
     /* ACCIONES
-     * Aqui definimos el costo,recompensa,y probabilidad
-     * OBSERVACION accion corresponde a la acción en caso general
-     * accion_ correspondería a la acción aplicada a objeto(s) particulares
-     * por ejemplo se puede tener el caso particular de que la recompensa de moverse food_shelf al mostrador es diferente a las demás
-     * Pondríamos en la base mover_(food_shelf,mostrador)=>0.8 como propiedad del objeto r 
-     * y la siguiente consulta obtendría el costo, probabilidad y recompensa respectivo.
+     * Aqui definimos el costo,recompensa,y probabilidad OBSERVACION
+     * accion corresponde a la acción en caso general accion_
+     * correspondería a la acción aplicada a objeto(s) particulares
+     * por ejemplo se puede tener el caso particular de que la
+     * recompensa de moverse food_shelf al mostrador es diferente a
+     * las demás Pondríamos en la base
+     * mover_(food_shelf,mostrador)=>0.8 como propiedad del objeto r y
+     * la siguiente consulta obtendría el costo, probabilidad y
+     * recompensa respectivo.
      * ?-   open_kb('kb_proy2.txt',KB),
      *      extension_de_propiedad_(KB,mover_(food_shelf,mostrador),Ans1),
      *      extension_de_propiedad_(KB,mover(food_shelf,mostrador),Ans2),
