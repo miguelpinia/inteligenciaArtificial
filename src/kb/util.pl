@@ -303,14 +303,15 @@ clasifica([_|Restantes],PositivasEncontradas,NegativasEncontradas,Positivas,Nega
 * cambia_key_pq(PQ,Key=>Val,NPQ)
 */
 
-agrega_pq([],Key=>Val,[Key=>Val]):-!.
+agrega_pq([],Key=>Val,[Key=>Val]):-
+    !.
 
-agrega_pq([Lower=>Val|RPQ],Key=>Value,[key=>Value|[Lower=>Val|RPQ]]):-
+agrega_pq([Lower=>Value|RPQ],Key=>Val,[key=>Val|[Lower=>Value|RPQ]]):-
     Key=<Lower,
     !.
 
-agrega_pq([Lower=>Val|RPQ],key=>Value,[Lower=>Val|NRPQ]):-
-    agrega_pq(RPQ,key=>Value,NRPQ),
+agrega_pq([Lower=>Value|RPQ],Key=>Val,[Lower=>Value|NRPQ]):-
+    agrega_pq(RPQ,Key=>Val,NRPQ),
     !.
 
 /* Elimina de PQ la aparición de Val*/
@@ -334,12 +335,18 @@ lista_de_atributos([],[]).
 * Convierte una lista de Atr=>Valor a una lista de solamente los atributos
 * Ejemplo lista_de_atributos([a1=>v1,a2=>v2,...,an=>vn],[v1,v2,...,vn])
 */
-lista_de_valores([_=>Valor|Resto],[Valor|ValorResto]):-
-    lista_de_valores(Resto,ValorResto).
+lista_de_valores(Lista,Valores):-
+    voltea_av(Lista,Volteada),
+    lista_de_atributos(Volteada,Valores),
+    !.
 
-lista_de_valores([],[]).
-
-
+/*
+* voltea_av(Lista,ListaVolteada)
+* Voltea atr=>val por val=>atr
+*/
+voltea_av([Atr=>Val|Resto],[Val=>Atr|VolteaResto]):-
+    voltea_av(Resto,VolteaResto),!.
+voltea_av([],[]).
 
 /*
  * filtra_por_valores(ListaIdValor,Valor,ListaIdValorFiltrado)
