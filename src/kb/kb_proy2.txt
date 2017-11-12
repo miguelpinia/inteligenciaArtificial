@@ -27,19 +27,20 @@
      * luego un objeto por cada producto (puede haber mas de uno de un mismo producto)
      */
     /*LAS BEBIDAS*/
-    clase(bebida,top,[],[loc=>drink_shelf],[]),
+    clase(producto,top,[],[],[]),
+    clase(bebida,producto,[],[loc=>drink_shelf],[]),
     clase(refresco,bebida,[],[],[coca]),
     objeto(coca,refresco,[],[]),
     clase(cerveza,bebida,[],[],[heineken]),
     objeto(heineken,cerveza,[],[]),
     /* LA COMIDA */
-    clase(food,top,[],[loc=>food_shelf],[]),
+    clase(food,producto,[],[loc=>food_shelf],[]),
     clase(cereal,food,[],[],[kellogs]),
     objeto(kellogs,cereal,[],[]),
     clase(sopa,food,[],[],[noodles]),
     objeto(noodles,sopa,[],[]),
     /* EL PAN */
-    clase(bread,top,[],[loc=>bread_shelf],[]),
+    clase(bread,producto,[],[loc=>bread_shelf],[]),
     clase(galletas,bread,[],[],[bisquits]),
     objeto(bisquits,galletas,[not(alcanzable)],[]),
 
@@ -78,9 +79,9 @@
      *Fusionada = [c=>1, p=>0.9, r=>0.8].
      */
     /* RECOMPENSAS */
-    objeto(r,top,[mover_(food_shelf,mostrador)=>0.8,mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1],[]),
+    objeto(r,top,[r=>val([mover(food_shelf,mostrador)=>0.8,mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1])],[]),
     /* PROBABILIDADES */
-    objeto(p,top,[mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9],[]),
+    objeto(p,top,[p=>val([mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9])],[]),
     /* COSTOS */
-    objeto(c,top,[mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1],[])
+    objeto(c,top,[c=>val([mover(food_shelf,mostrador)=>2,mover(Li,Li)=>0,mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1])],[])
 ]

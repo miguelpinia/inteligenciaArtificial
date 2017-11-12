@@ -391,3 +391,61 @@ filtra_por_atributos(Lista,[Atr|Resto],Filtrada):-
     append(FiltradaPorAtr,FiltradaPorResto,Filtrada).
 
 filtra_por_atributos(_,[],[]).
+
+/*
+* Obtiene los estantes pobservados
+*/
+obten_estantes_observados(KB,EstantesObservados):-
+    obten_observaciones(KB,Observaciones),
+    lista_de_valores(Observaciones,Observados_),
+    /* Eliminamos repetidos*/
+    list_to_set(Observados_,EstantesObservados).
+
+
+/*
+* Obtiene los estantes que no se han escaneado()
+*/
+obten_estantes_no_observados(KB,EstantesNoObservados):-
+    /* Obtenemos todos los estantes*/
+    extension_de_clase(KB,estante,Todos),
+    /*Obtenemos todos los estantes observados*/
+    obten_estantes_observados(KB,EstantesObservados),
+    /* Verificamos que todos ya se hayan visitado*/
+    subtract(Todos,EstantesObservados,EstantesNoObservados).
+
+/*
+* Obtiene las creencias del robot que hay en la KB
+*/
+obten_creencias(KB,Creencias):-
+    extension_de_propiedad_(KB,cree,Ext),
+    lista_de_valores(Ext,[val(Creencias)]).
+
+/*
+* Obtiene las observaciones del robot que hay en la KB
+*/
+obten_observaciones(KB,Observaciones):-
+    extension_de_propiedad_(KB,obs,Ext),
+    lista_de_valores(Ext,[val(Observaciones)]).
+
+
+/*
+* Obtiene los objetos movidos por el robot.
+*/
+obten_movidos(KB,Movidos):-
+    extension_de_propiedad_(KB,movidos,Ext),
+    lista_de_valores(Ext,[val(Movidos)]).
+
+/*Obtiene el costo de una accion dada*/
+obten_costo(KB,Accion,C):-
+    propiedades_de_objeto(KB,c,[_=>val(Costos)]),
+    primera(Accion=>_,Costos,Accion=>C).
+
+/*Obtiene la probabilidad de una accion dada*/
+obten_probabilidad(KB,Accion,P):-
+    propiedades_de_objeto(KB,p,[_=>val(Probs)]),
+    primera(Accion=>_,Probs,Accion=>P).
+
+/*Obtine la recompensa de una acción dada*/
+obten_recompensa(KB,Accion,R):-
+    propiedades_de_objeto(KB,r,[_=>val(Recs)]),
+    primera(Accion=>_,Recs,Accion=>R).
