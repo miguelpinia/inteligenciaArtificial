@@ -449,3 +449,9 @@ obten_probabilidad(KB,Accion,P):-
 obten_recompensa(KB,Accion,R):-
     propiedades_de_objeto(KB,r,[_=>val(Recs)]),
     primera(Accion=>_,Recs,Accion=>R).
+
+/* Obtiene el lugar correcto de un producto */
+lugar_correcto_de_producto(KB,Producto,Lugar):-
+    obten_objeto(KB,Producto,objeto(Producto, Clase, _, _)),
+    relaciones_de_clase(KB,Clase,Props),
+    filtra_por_atributo(Props,loc,[loc=>Lugar]).
