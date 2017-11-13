@@ -20,7 +20,11 @@
          */
         movidos=>val([]),
         /* Acciones pendientes entregar(Oi),reacomodar(Oi)*/
-        pendientes=>val([entregar(coca)])
+        pendientes=>val([entregar(coca)]),
+        /* Objetos pendientes por entregar */
+        entregas=>val([coca]),
+        /* ültima secuencia de decisiones. */
+        decisiones=>val([])
     ],[]),
     /*
      * Aqui definimos clases y objetos con caracteristicas Creamos una
