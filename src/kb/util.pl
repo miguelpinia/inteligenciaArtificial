@@ -403,14 +403,16 @@ filtra_por_atributos(_,[],[]).
 * Obtiene los estantes pobservados
 */
 obten_estantes_observados(KB,EstantesObservados):-
-    obten_observaciones(KB,Observaciones),
-    lista_de_valores(Observaciones,Observados_),
-    /* Eliminamos repetidos*/
-    list_to_set(Observados_,EstantesObservados).
+    extension_de_clase(KB,estante,Estantes),
+    extension_de_propiedad_(KB,observado,Ext),
+    filtra_por_valor(Ext,si,Observados_),
+    lista_de_atributos(Observados_,Observados),
+    intersection(Estantes,Observados,EstantesObservados).
 
 
 /*
 * Obtiene los estantes que no se han escaneado()
+* TODO Modificar para tomar en cuanta la propiedad observado o not(observado)
 */
 obten_estantes_no_observados(KB,EstantesNoObservados):-
     /* Obtenemos todos los estantes*/
@@ -462,3 +464,12 @@ lugar_correcto_de_producto(KB,Producto,Lugar):-
     obten_objeto(KB,Producto,objeto(Producto, Clase, _, _)),
     relaciones_de_clase(KB,Clase,Props),
     filtra_por_atributo(Props,loc,[loc=>Lugar]).
+
+/* Obtiene la posición del robot */
+obten_posicion(KB,Pos):-
+    propiedades_de_objeto(KB,golem,Props),
+    filtra_por_atributo(Props,pos,[pos=>Pos]).
+
+/* Obtiene las acciones pendientes del robot */
+obten_acciones_pendientes(KB,Pendientes):-
+    extension_de_propiedad_(KB,pendientes,[_=>val(Pendientes)]).
