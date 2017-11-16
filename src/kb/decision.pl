@@ -1,4 +1,4 @@
-:- [util].
+:- [util, consulta, modifica].
 
 /*
  * Obtiene la posición del robot.
@@ -49,7 +49,7 @@ objetos_pos_incorrecta(KB, Estante, Incorrectos) :-
  * ?- open_kb('kb_proy2.txt', KB), objetos_pos_incorrecta(KB, Incorrectos).
  */
 objetos_pos_incorrecta(KB, Incorrectos) :-
-    extension_de_clase(KB, estante, Estantes),
+    obten_estantes_observados(KB, Estantes),
     maplist(objetos_pos_incorrecta(KB), Estantes, Incs),
     flatten(Incs, Incorrectos).
 
@@ -99,11 +99,11 @@ reacomodos_pendientes(KB, Estante, Pendientes) :-
     findall(reacomodar(X), (member(X, Incorrectos)), Pendientes).
 
 /*
- * Obtiene la lista de tareas pendientes para todos los estantes.
+ * Obtiene la lista de tareas pendientes para todos los estantes observados.
  * ?- open_kb('kb_proy2.txt', KB), tareas_pendientes(KB, Pendientes).
  */
 tareas_pendientes(KB, Pendientes) :-
-    extension_de_clase(KB, estante, Estantes),
+    obten_estantes_observados(KB, Estantes),
     maplist(reacomodos_pendientes(KB), Estantes, Pends),
     flatten(Pends, NPends),
     por_entregar(KB, Entregas),
