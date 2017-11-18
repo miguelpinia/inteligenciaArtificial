@@ -12,15 +12,15 @@
         /* La posición actual de golem en los diferentes lugares*/
         pos=>mostrador,
         /* La lista de objeto=>lugar en donde golem cree que estan los objetos */
-        cree=>val([coca=>drink_shelf,heineken=>drink_shelf,noodles=>bread_shelf,bisquits=>bread_shelf]),
+        cree=>val([coca=>drink_shelf,maruchan=>drink_shelf,heineken=>food_shelf,kellogs=>food_shelf,noodles=>bread_shelf,bisquits=>bread_shelf]),
         /* La lista de objeto=>lugar ya observados */
         obs=>val([coca=>drink_shelf]),
         /* Los objetos que ha movido el robot se deben distinguir en el diagnóstico
          * Esta lista guardará donde los encontró originalmente
          */
         movidos=>val([]),
-        /* Acciones pendientes entregar(Oi),reacomodar(Oi)*/
-        pendientes=>val([entregar(coca)]),
+        /* Acciones pendientes entregar(Oi),reacomodar(Oi)*/ /* entregar(coca), entregar(kellogs), entregar(maruchan), reacomodar(noodles), reacomodar(bisquits),*/
+        pendientes=>val([entregar(coca), entregar(kellogs), entregar(maruchan), reacomodar(noodles), reacomodar(bisquits), reacomodar(maruchan)]),
         /* Objetos pendientes por entregar */
         entregas=>val([coca]),
         /* ültima secuencia de decisiones. */
@@ -45,6 +45,7 @@
     objeto(kellogs,cereal,[],[]),
     clase(sopa,food,[],[],[noodles]),
     objeto(noodles,sopa,[],[]),
+    objeto(maruchan,sopa,[],[]),
     /* EL PAN */
     clase(bread,producto,[],[loc=>bread_shelf],[]),
     clase(galletas,bread,[],[],[bisquits]),
