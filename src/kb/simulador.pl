@@ -87,6 +87,12 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
     subtract(Obs,ABorrar,Obs2),
     /* Construimos observaciones */
     construye_observaciones(Contenido,Pos,NObs),
+    /* Buscar los objetos que no son alcanzables e imprime un mensaje. */
+    extension_de_propiedad_(KB, alcanzable, Objs),
+    filtra_por_valor(Objs, no, NoAlcanzables),
+    lista_de_atributos(NoAlcanzables, ObjsNoAlcanzables),
+    nl, write('Los siguientes objetos no se pueden alcanzar: '), nl,
+    imprime(ObjsNoAlcanzables), nl,
     /* Agregamos las observaciones*/
     append(NObs,Obs2,NuevasObservaciones),
     modifica_propiedad_de_objeto(KB,obs=>val(NuevasObservaciones),golem,KB2),
@@ -97,7 +103,12 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
     /*Obtenemos la lista de tareas pendientes */
     propiedades_de_objeto(KB2,golem,Props),
     filtra_por_atributo(Props,pendientes,[_=>val(Pends)]),
-    union(Pends,AReac,NuevosPendientes),
+    /* Elimina los objetos inalcanzables de las listas de acciones de pendientes. */
+    union(Pends,AReac,NPendientes),
+    findall(Pend,
+            ((member(entregar(P), NPendientes), not(member(P, ObjsNoAlcanzables)), Pend = entregar(P));
+             (member(reacomodar(P), NPendientes), not(member(P, ObjsNoAlcanzables)), Pend = reacomodar(P))),
+            NuevosPendientes),
     /* Actualizamos la lista de pendientes*/
     modifica_propiedad_de_objeto(KB2,pendientes=>val(NuevosPendientes),golem,NuevaKB_),
     /* Lo marcamos como observado*/
