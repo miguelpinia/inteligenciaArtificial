@@ -92,5 +92,5 @@
     /* PROBABILIDADES */
     objeto(p,top,[p=>val([mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9])],[]),
     /* COSTOS */
-    objeto(c,top,[c=>val([mover(food_shelf,mostrador)=>2,mover(Li,Li)=>0,mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1])],[])
+    objeto(c,top,[c=>val([mover(mostrador, drink_shelf)=>1,mover(mostrador,food_shelf)=>2,mover(mostrador,bread_shelf)=>3,mover(drink_shelf, mostrador)=>1,mover(drink_shelf,food_shelf)=>1,mover(drink_shelf,bread_shelf)=>2,mover(food_shelf,mostrador)=>2,mover(food_shelf,drink_shelf)=>1,mover(food_shelf,bread_shelf)=>1,mover(bread_shelf,mostrador)=>3,mover(bread_shelf,drink_shelf)=>2,mover(bread_shelf,food_shelf)=>1,mover(Li,Li)=>0,mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1])],[])
 ]
