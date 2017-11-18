@@ -4,9 +4,8 @@
  * Obtiene la lista decisiones que debe tomar el robot. Este es el
  * predicado principal del módulo.
  */
-decision(KB, Decisiones, NuevaKB) :-
-    calcula_decisiones(KB, [], Decisiones),
-    modifica_propiedad_de_objeto(KB,decisiones=>val(Decisiones),golem,NuevaKB), !.
+decision(KB, Decisiones) :-
+    calcula_decisiones(KB, [], Decisiones), !.
 
 /*
  * Verifica si una lista es vacía.
