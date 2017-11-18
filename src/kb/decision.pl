@@ -77,6 +77,39 @@ calcula_minimo(KB, Decs, MinDec) :-
             [MinDec|_]), !.
 
 /*
+ * Dado un estado y una lista de pendientes, calcula su estado
+ * siguiente.
+ */
+estado_siguiente(KB, Estado, Pendientes, Siguiente) :-
+    expande_nodo(Estado, Pendientes, Expansion),
+    calcula_minimo(KB, Expansion, Siguiente), !.
+
+/*
+ * Filtra los reacomodos que no están en el estado.
+ */
+filtra_reacomodos(Estado, Reacomodar, Reacomodos) :-
+    findall(reacomodar(P), (member(reacomodar(P), Reacomodar),
+                            not(member(entregar(P), Estado)),
+                            not(member(reacomodar(P), Estado))),
+            Reacomodos).
+
+/*
+ * Filtra las entregas que no están en el estado.
+ */
+filtra_entregas(Estado, Entregar, Entregas) :-
+    findall(entregar(P), (member(entregar(P), Entregar),
+                          not(member(entregar(P), Estado)),
+                          not(member(reacomodar(P), Estado))),
+            Entregas).
+
+/*
+ * Obtiene el siguiente paso.
+ */
+siguiente_paso(KB, Estado, Pendientes, Decisiones) :-
+    estado_siguiente(KB, Estado, Pendientes, Siguiente),
+    calcula_decisiones(KB, Siguiente, Decisiones).
+
+/*
  * Calcula la lista de decisiones que debe tomar el robot. Esta lista
  * será de tamaño a lo más 4, donde serán a lo más dos entregas y a lo
  * más dos reacomodos. Estas entregas y reacomodos están seleccionadas
@@ -89,56 +122,30 @@ calcula_decisiones(KB, Estado, Decisiones) :-
     ((Estado = [],
       separa(Pendientes, Entregar, Reacomodar),
       ((not(es_vacia(Entregar)),
-        expande_nodo(Estado, Entregar, Expansion),
-        calcula_minimo(KB, Expansion, Minimo),
-        calcula_decisiones(KB, Minimo, Decisiones));
+        siguiente_paso(KB, Estado, Entregar, Decisiones));
        (not(es_vacia(Reacomodar)),
-        expande_nodo(Estado, Reacomodar, Expansion),
-        calcula_minimo(KB, Expansion, Minimo),
-        calcula_decisiones(KB, Minimo, Decisiones));
+        siguiente_paso(KB, Estado, Reacomodar, Decisiones));
        (Decisiones = Estado))), !;
      (length(Estado, 1),
       (Estado = [reacomodar(_)],
        separa(Pendientes, _, Reacomodar),
        ((es_vacia(Reacomodar),
          Decisiones = Estado, !);
-        (findall(reacomodar(P), (member(reacomodar(P), Reacomodar),
-                                 not(member(entregar(P), Estado)),
-                                 not(member(reacomodar(P), Estado))),
-                 Reacomodos),
+        (filtra_reacomodos(Estado, Reacomodar, Reacomodos),
          not(es_vacia(Reacomodos)),
-         expande_nodo(Estado, Reacomodos, Expansion),
-         calcula_minimo(KB, Expansion, Decisiones), !)));
+         estado_siguiente(KB, Estado, Reacomodos, Decisiones), !)));
       (Estado = [entregar(_)],
        separa(Pendientes, Entregar, Reacomodar),
-       ((findall(entregar(P), (member(entregar(P), Entregar),
-                               not(member(entregar(P), Estado)),
-                               not(member(reacomodar(P), Estado))),
-                 Entregas),
+       ((filtra_entregas(Estado, Entregar, Entregas),
          not(es_vacia(Entregas)),
-         expande_nodo(Estado, Entregas, Expansion),
-         calcula_minimo(KB, Expansion, Minimo),
-         calcula_decisiones(KB, Minimo, Decisiones));
-        (findall(entregar(P), (member(entregar(P), Entregar),
-                               not(member(entregar(P), Estado))),
-                 Entregas),
-         findall(reacomodar(P), (member(reacomodar(P), Reacomodar),
-                                 not(member(entregar(P), Estado)),
-                                 not(member(reacomodar(P), Estado))),
-                 Reacomodos),
+         siguiente_paso(KB, Estado, Entregas, Decisiones));
+        (filtra_entregas(Estado, Entregar, Entregas),
+         filtra_reacomodos(Estado, Reacomodar, Reacomodos),
          es_vacia(Entregas),
          not(es_vacia(Reacomodos)),
-         expande_nodo(Estado, Reacomodos, Expansion),
-         calcula_minimo(KB, Expansion, Minimo),
-         calcula_decisiones(KB, Minimo, Decisiones)), !;
-        (findall(entregar(P), (member(entregar(P), Entregar),
-                               not(member(entregar(P), Estado)),
-                               not(member(reacomodar(P), Estado))),
-                 Entregas),
-         findall(reacomodar(P), (member(reacomodar(P), Reacomodar),
-                                 not(member(entregar(P), Estado)),
-                                 not(member(reacomodar(P), Estado))),
-                 Reacomodos),
+         siguiente_paso(KB, Estado, Reacomodos, Decisiones)), !;
+        (filtra_entregas(Estado, Entregar, Entregas),
+         filtra_reacomodos(Estado, Reacomodar, Reacomodos),
          es_vacia(Entregas),
          es_vacia(Reacomodos),
          Decisiones = Estado)))), !;
@@ -150,26 +157,17 @@ calcula_decisiones(KB, Estado, Decisiones) :-
         separa(Pendientes, _, Reacomodar),
         ((es_vacia(Reacomodar),
           Decisiones = Estado), !;
-         (findall(reacomodar(P), (member(reacomodar(P), Reacomodar),
-                                  not(member(entregar(P), Estado)),
-                                  not(member(reacomodar(P), Estado))),
-                  Reacomodos),
-          expande_nodo(Estado, Reacomodos, Expansion),
-          calcula_minimo(KB, Expansion, Minimo),
-          calcula_decisiones(KB, Minimo, Decisiones)))))), !;
+         (filtra_reacomodos(Estado, Reacomodar, Reacomodos),
+          siguiente_paso(KB, Estado, Reacomodos, Decisiones)))))), !;
      (length(Estado, 3),
       (Estado = [entregar(_), reacomodar(_), reacomodar(_)],
        Decisiones = Estado);
       (Estado = [entregar(_), entregar(_), reacomodar(_)],
        separa(Pendientes, _, Reacomodar),
-       findall(reacomodar(P), (member(reacomodar(P), Reacomodar),
-                               not(member(reacomodar(P), Estado)),
-                               not(member(entregar(P), Estado))),
-               Reacomodos),
+       filtra_reacomodos(Estado, Reacomodar, Reacomodos),
        ((es_vacia(Reacomodos),
          Decisiones = Estado);
         (not(es_vacia(Reacomodos)),
-         expande_nodo(Estado, Reacomodos, Expansion),
-         calcula_minimo(KB, Expansion, Decisiones)))));
+         estado_siguiente(KB, Estado, Reacomodos, Decisiones)))));
      (Estado = Decisiones,
       Decisiones = Estado), !).
