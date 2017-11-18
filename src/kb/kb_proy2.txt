@@ -62,9 +62,9 @@
     objeto(der,brazo,[],[]),
     /* LOS ESTANTES DE LA TIENDA*/
     clase(estante,lugar,[not(observado)],[],[drink_shelf,food_shelf,bread_shelf]),
-    objeto(drink_shelf,estante,[],[tiene=>[heineken,noodles], distancia=>[[mostrador, 1], [drink_shelf, 0], [food_shelf, 1], [bread_shelf, 2]]]),
-    objeto(food_shelf,estante,[],[tiene=>[kellogs], distancia=>[[mostrador, 2], [drink_shelf, 1], [food_shelf, 0], [bread_shelf, 1]]]),
-    objeto(bread_shelf,estante,[],[tiene=>[coca,bisquits], distancia=>[[mostrador, 3], [drink_shelf, 2], [food_shelf, 1], [bread_shelf, 0]]]),
+    objeto(drink_shelf,estante,[],[tiene=>[coca, maruchan]]),
+    objeto(food_shelf,estante,[],[tiene=>[kellogs,heineken,bisquits]]),
+    objeto(bread_shelf,estante,[],[tiene=>[noodles]]),
 
     /* ACCIONES
      * Aqui definimos el costo,recompensa,y probabilidad OBSERVACION
