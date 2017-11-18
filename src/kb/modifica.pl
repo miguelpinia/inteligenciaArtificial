@@ -278,7 +278,7 @@ modifica_propiedad_de_objeto(KB,not(Prop=>Valor),Id,NuevaKB):-
     reemplaza(KB,objeto(Id, Clase,Propiedades, Relaciones),objeto(Id, Clase,NuevasPropiedades, Relaciones),NuevaKB),
     !.
 
-modifica_propiedad_de_objeto(KB,(Prop=>Valor),Id,NuevaKB):-
+modifica_propiedad_de_objeto(KB,Prop=>Valor,Id,NuevaKB):-
     /* Checamos si ya esta definido  y que sea de la misma manera*/
     propiedades_de_objeto(KB,Id,Props),
     member(Prop=>_,Props),

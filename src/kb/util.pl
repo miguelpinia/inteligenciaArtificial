@@ -374,7 +374,8 @@ filtra_por_atributo([Atr=>Vals|Resto],Atr,[Atr=>Vals|RestoFiltrado]):-
     filtra_por_atributo(Resto,Atr,RestoFiltrado),
     !.
 
-filtra_por_atributo([_|Resto],Atr,RestoFiltrado):-
+filtra_por_atributo([Atr2=>_|Resto],Atr,RestoFiltrado):-
+    dif(Atr2,Atr),
     filtra_por_atributo(Resto,Atr,RestoFiltrado).
 
 /*
