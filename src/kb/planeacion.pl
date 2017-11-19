@@ -23,7 +23,7 @@ transforma_plan([ba(Oi)|RestoPlanBA],[buscar(Oi)|[agarrar(Oi)|RestoPlan]]):-
     !.
 
 
-transforma_plan([Accion|RestoPlanBA],RestoPlan):-
+transforma_plan([Accion|RestoPlanBA],[Accion|RestoPlan]):-
     dif(Accion,ba(_)),
     transforma_plan(RestoPlanBA,RestoPlan),
     !.

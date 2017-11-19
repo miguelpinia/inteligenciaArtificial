@@ -99,7 +99,7 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
     /* Necesiamos saber si hay objetos que se deben reacomodar*/
     lista_de_objetos_a_reacomodar(KB2,Contenido,Pos,AReac),
     /* Silo en caso de que el objeto que buscamos está en lo que vimos y que no hay nada fuera de lugar estamos bien*/
-    ((member(Oi,Contenido),AReac=[],Ok=1);Ok=0),
+    ((member(Oi,Contenido),Ok=1);Ok=0),
     /*Obtenemos la lista de tareas pendientes */
     propiedades_de_objeto(KB2,golem,Props),
     filtra_por_atributo(Props,pendientes,[_=>val(Pends)]),
