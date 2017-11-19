@@ -26,8 +26,8 @@ simulador(KB):-
 
 /* Si al ejecutar la primera acción todo sale bien seguimos con la ejecución*/
 simula_plan(KB,[Accion|Resto],Ok,NuevaKB):-
-    write('Accion: '),write(Accion),write(' Exito'),nl,
     simula_accion(KB,Accion,1,KB2),
+    write('Accion: '),write(Accion),write(' Exito'),nl,
     simula_plan(KB2,Resto,Ok,NuevaKB),
     !.
 
