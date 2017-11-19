@@ -26,11 +26,9 @@
         /* ültima secuencia de decisiones. */
         decisiones=>val([])
     ],[]),
-    /*
-     * Aqui definimos clases y objetos con caracteristicas Creamos una
-     * superclase por estante y como subclases una por cada tipo de
-     * producto que se acomode en el estante, luego un objeto por cada
-     * producto (puede haber mas de uno de un mismo producto)
+    /* Aqui definimos clases y objetos con caracteristicas
+     * Creamos una superclase por estante y como subclases una por cada tipo de producto que se acomode en el estante,
+     * luego un objeto por cada producto (puede haber mas de uno de un mismo producto)
      */
     /*LAS BEBIDAS*/
     clase(producto,top,[],[],[]),
@@ -53,10 +51,8 @@
 
     /* POSICIONES */
     clase(lugar,top,[],[],[mostrador,inalcanzable]),
-    /* UN LUGAR PARA LAS COSAS NO ALCANZABLES*/
-    objeto(inalcanzable,lugar,[],[]),
     /* El objeto mostrador*/
-    objeto(mostrador,lugar,[],[distancia=>[[mostrador, 0], [drink_shelf, 1], [food_shelf, 2], [bread_shelf, 3]]]),
+    objeto(mostrador,lugar,[],[]),
     /* LOS BAZOS LOS CONSIDERAMOS LUGARES */
     clase(brazo,lugar,[],[],[izq,der]),
     objeto(izq,brazo,[],[]),
@@ -89,9 +85,9 @@
      *Fusionada = [c=>1, p=>0.9, r=>0.8].
      */
     /* RECOMPENSAS */
-    objeto(r,top,[r=>val([mover(food_shelf,mostrador)=>0.8,mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1])],[]),
+    objeto(r,top,[r=>val([mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1,agarrar(Oi)=>1])],[]),
     /* PROBABILIDADES */
-    objeto(p,top,[p=>val([mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9])],[]),
+    objeto(p,top,[p=>val([mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9,agarrar(Oi)=>0.9])],[]),
     /* COSTOS */
-    objeto(c,top,[c=>val([mover(mostrador, drink_shelf)=>1,mover(mostrador,food_shelf)=>2,mover(mostrador,bread_shelf)=>3,mover(drink_shelf, mostrador)=>1,mover(drink_shelf,food_shelf)=>1,mover(drink_shelf,bread_shelf)=>2,mover(food_shelf,mostrador)=>2,mover(food_shelf,drink_shelf)=>1,mover(food_shelf,bread_shelf)=>1,mover(bread_shelf,mostrador)=>3,mover(bread_shelf,drink_shelf)=>2,mover(bread_shelf,food_shelf)=>1,mover(Li,Li)=>0,mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1])],[])
+    objeto(c,top,[c=>val([mover(mostrador, drink_shelf)=>1,mover(mostrador,food_shelf)=>2,mover(mostrador,bread_shelf)=>3,mover(drink_shelf, mostrador)=>1,mover(drink_shelf,food_shelf)=>1,mover(drink_shelf,bread_shelf)=>2,mover(food_shelf,mostrador)=>2,mover(food_shelf,drink_shelf)=>1,mover(food_shelf,bread_shelf)=>1,mover(bread_shelf,mostrador)=>3,mover(bread_shelf,drink_shelf)=>2,mover(bread_shelf,food_shelf)=>1,mover(Li,Li)=>0,mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1,agarrar(Oi)=>1])],[])
 ]
