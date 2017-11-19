@@ -14,16 +14,30 @@ planeacion(KB,Desiciones,Plan):-
 	obten_posicion(KB,Pos),
 	cargando_izq(KB,Izq),
 	cargando_der(KB,Der),
-	plan(KB,[0=>node(0,nil,0,edo(Pos,Izq,Der,Desiciones,[]))],[],Plan).
+	plan(KB,[0=>node(0,nil,0,edo(Pos,Izq,Der,Desiciones,[]))],[],PlanBA),
+    transforma_plan(PlanBA,Plan).
+
+/* Cambia las apariciones de ba(Oi) en PlanAB por buscar(Oi),agarrar(Oi)*/
+transforma_plan([ba(Oi)|RestoPlanBA],[buscar(Oi)|[agarrar(Oi)|RestoPlan]]):-
+    transforma_plan(RestoPlanBA,RestoPlan),
+    !.
+
+
+transforma_plan([Accion|RestoPlanBA],RestoPlan):-
+    dif(Accion,ba(_)),
+    transforma_plan(RestoPlanBA,RestoPlan),
+    !.
+
+
+/* Ya terminamos*/
+transforma_plan([],[]).
 
 /* Caso base si ya no hay pendientes ya terminamos y el plan esta dentro del estado */
-plan(_,[_=>node(_,_,_,edo(Pos,Izq,Der,[],Plan))|_],_,Plan):-
-    nl,nl,nl,write(edo(Pos,Izq,Der,[],Plan)),nl,nl,nl,!.
+plan(_,[_=>node(_,_,_,edo(_,_,_,[],Plan))|_],_,Plan):-!.
 
 /* Caso en que no es meta */
 
 plan(KB,[_=>node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual))|Resto],Cerrados,Plan):-
-    nl,nl,nl,write(edo(Pos,Izq,Der,Pend,PlanActual)),nl,
 	lista_de_valores(Resto,Abiertos),
 	append(Abiertos,Cerrados,Nodos),
 	findall(Id,member(node(Id,_,_),Nodos),Ids),
@@ -118,7 +132,7 @@ plan_suc(KB,node(Id,Padre,G,edo(Estante,Izq,Der,Pend,Plan)),LastId,Sucesores):-
 			)
 		)
 	),
-	calcula_sucesores(KB,Acciones,node(Id,Padre,G,edo(Estante,[Oi],Der,Pend,Plan)),LastId,Sucesores),
+	calcula_sucesores(KB,Acciones,node(Id,Padre,G,edo(Estante,Izq,Der,Pend,Plan)),LastId,Sucesores),
     !.
 
 /* Calcula la secuencia de movientos posibles dado un origen y una lista de destinos */
@@ -198,8 +212,8 @@ calcula_sucesores(KB,[Accion|Acciones],node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan)),L
 		)
 	),
 	append(Plan,[Accion],Nuevo_plan),
-    write(Accion),nl,
-    write(Nuevo_plan),nl,nl,
+    %write(Accion),nl,
+    %write(Nuevo_plan),nl,nl,
 	obten_costo(KB,Accion,C),
 	/* Checar si es necesario el + 1 */
 	Nuevo_Id is LastId + 1,

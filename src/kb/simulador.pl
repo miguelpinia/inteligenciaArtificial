@@ -8,14 +8,14 @@ simulador(KB):-
     diagnostico(KB,Diagnostico,KB2),
     write('Mi diagnostico a cerca de las acciones del asistente son:'),nl,
     imprime(Diagnostico),nl,
-    decision(KB2,Decision,KB3),
+    decision(KB2,Decisiones),
     write('Mi decision es:'),nl,
-    imprime(Decision),nl,
-    planeacion(KB3,Plan,KB4),
+    imprime(Decisiones),nl,
+    planeacion(KB2,Decisiones,Plan),
     write('Mi plan es:'),nl,
     imprime(Plan),nl,
     /* Ya no nos importa el resultado, se ciclará hasta que termine con las acciones pendientes */
-    simula_plan(KB4,Plan,_,NuevaKB),
+    simula_plan(KB2,Plan,_,NuevaKB),
     simulador(NuevaKB).
 
 /*
