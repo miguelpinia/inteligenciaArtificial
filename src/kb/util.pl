@@ -306,7 +306,7 @@ clasifica([_|Restantes],PositivasEncontradas,NegativasEncontradas,Positivas,Nega
 agrega_pq([],Key=>Val,[Key=>Val]):-
     !.
 
-agrega_pq([Lower=>Value|RPQ],Key=>Val,[key=>Val|[Lower=>Value|RPQ]]):-
+agrega_pq([Lower=>Value|RPQ],Key=>Val,[Key=>Val|[Lower=>Value|RPQ]]):-
     Key=<Lower,
     !.
 
@@ -316,7 +316,7 @@ agrega_pq([Lower=>Value|RPQ],Key=>Val,[Lower=>Value|NRPQ]):-
 /*Agrega una lista de llave=>valor a PQ resultando NPQ*/
 agrega_pq_muchos(Pq,[Primero|Resto],NPQ):-
     agrega_pq(Pq,Primero,Pq2),
-    agrega_pq(Pq2,Resto,NPQ),!.
+    agrega_pq_muchos(Pq2,Resto,NPQ),!.
 
 agrega_pq_muchos(Pq,[],Pq).
 
