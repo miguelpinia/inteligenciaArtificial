@@ -46,6 +46,20 @@ plan(KB,[_=>node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual))|Resto],Cerrados,Pl
 	agrega_pq_muchos(Resto,Sucesores,Nuevos_abiertos),
 	plan(KB,Nuevos_abiertos,[node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual))|Cerrados],Plan).
 
+/*
+* lugares_validos(Pendientes,Lugares)
+* regresa solo los objetos que nos interesan según la meta
+* podemos solo tratar de buscar y agarrar los objetos que tenemos
+* en los pendientes para reducir el branch factor
+*/
+
+/*
+* objetos_validos(Pendientes,Objetos)
+* regresa solo los lugares que creemos que nos interesan segun las metas
+* podemos solo ir a los lugares que debemos para reducir el branch factor
+*/
+
+
 plan_suc(KB,node(Id,Padre,G,edo(mostrador,Izq,Der,Pend,Plan)),LastId,Sucesores):-
 	/*Movernos */ extension_de_clase(KB,estante,Estantes),
 	calcula_mover(mostrador,Estantes,Movimientos),
