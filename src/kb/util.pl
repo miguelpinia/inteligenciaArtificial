@@ -313,6 +313,12 @@ agrega_pq([Lower=>Value|RPQ],Key=>Val,[key=>Val|[Lower=>Value|RPQ]]):-
 agrega_pq([Lower=>Value|RPQ],Key=>Val,[Lower=>Value|NRPQ]):-
     agrega_pq(RPQ,Key=>Val,NRPQ),
     !.
+/*Agrega una lista de llave=>valor a PQ resultando NPQ*/
+agrega_pq_muchos(Pq,[Primero|Resto],NPQ):-
+    agrega_pq(Pq,Primero,Pq2),
+    agrega_pq(Pq2,Resto,NPQ),!.
+
+agrega_pq_muchos(Pq,[],Pq).
 
 /* Elimina de PQ la aparición de Val*/
 elimina_pq(PQ,Val,NPQ):-
@@ -446,6 +452,12 @@ obten_movidos(KB,Movidos):-
     lista_de_valores(Ext,[val(Movidos)]).
 
 /*Obtiene el costo de una accion dada*/
+obten_costo(KB,ba(Oi),C):-
+    obten_costo(KB,buscar(Oi),C1),
+    obten_costo(KB,agarrar(Oi),C2),
+    C is C1 + C2,
+    !.
+
 obten_costo(KB,Accion,C):-
     propiedades_de_objeto(KB,c,[_=>val(Costos)]),
     primera(Accion=>_,Costos,Accion=>C).
@@ -474,3 +486,13 @@ obten_posicion(KB,Pos):-
 /* Obtiene las acciones pendientes del robot */
 obten_acciones_pendientes(KB,Pendientes):-
     extension_de_propiedad_(KB,pendientes,[_=>val(Pendientes)]).
+
+/*Cargando izquierdo*/
+cargando_izq(KB,Carga):-
+    relaciones_de_objeto(KB,izq,tiene=>Carga);
+    Carga=[].
+
+/*Cargando derecho*/
+cargando_der(KB,Carga):-
+    relaciones_de_objeto(KB,der,tiene=>Carga);
+    Carga=[].
