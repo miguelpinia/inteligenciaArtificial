@@ -12,19 +12,15 @@
         /* La posición actual de golem en los diferentes lugares*/
         pos=>mostrador,
         /* La lista de objeto=>lugar en donde golem cree que estan los objetos */
-        cree=>val([coca=>drink_shelf,maruchan=>drink_shelf,heineken=>food_shelf,kellogs=>food_shelf,noodles=>bread_shelf,bisquits=>bread_shelf]),
+        cree=>val([coca=>drink_shelf,heineken=>drink_shelf,noodles=>food_shelf,noodles=>food_shelf,bisquits=>bread_shelf]),
         /* La lista de objeto=>lugar ya observados */
-        obs=>val([coca=>drink_shelf]),
+        obs=>val([]),
         /* Los objetos que ha movido el robot se deben distinguir en el diagnóstico
          * Esta lista guardará donde los encontró originalmente
          */
         movidos=>val([]),
         /* Acciones pendientes entregar(Oi),reacomodar(Oi)*/ /* entregar(coca), entregar(kellogs), entregar(maruchan), reacomodar(noodles), reacomodar(bisquits),*/
-        pendientes=>val([entregar(coca), entregar(kellogs), entregar(maruchan), reacomodar(noodles), reacomodar(bisquits), reacomodar(maruchan)]),
-        /* Objetos pendientes por entregar */
-        entregas=>val([coca]),
-        /* ültima secuencia de decisiones. */
-        decisiones=>val([])
+        pendientes=>val([entregar(coca)])
     ],[]),
     /* Aqui definimos clases y objetos con caracteristicas
      * Creamos una superclase por estante y como subclases una por cada tipo de producto que se acomode en el estante,
@@ -43,7 +39,6 @@
     objeto(kellogs,cereal,[],[]),
     clase(sopa,food,[],[],[noodles]),
     objeto(noodles,sopa,[],[]),
-    objeto(maruchan,sopa,[],[]),
     /* EL PAN */
     clase(bread,producto,[],[loc=>bread_shelf],[]),
     clase(galletas,bread,[],[],[bisquits]),
@@ -59,35 +54,15 @@
     objeto(der,brazo,[],[]),
     /* LOS ESTANTES DE LA TIENDA*/
     clase(estante,lugar,[not(observado)],[],[drink_shelf,food_shelf,bread_shelf]),
-    objeto(drink_shelf,estante,[],[tiene=>[coca, maruchan]]),
-    objeto(food_shelf,estante,[],[tiene=>[kellogs,heineken,bisquits]]),
-    objeto(bread_shelf,estante,[],[tiene=>[noodles]]),
+    objeto(drink_shelf,estante,[],[tiene=>[noodles, heineken]]),
+    objeto(food_shelf,estante,[],[tiene=>[kellogs]]),
+    objeto(bread_shelf,estante,[],[tiene=>[coca,bisquits]]),
 
-    /* ACCIONES
-     * Aqui definimos el costo,recompensa,y probabilidad OBSERVACION
-     * accion corresponde a la acción en caso general accion_
-     * correspondería a la acción aplicada a objeto(s) particulares
-     * por ejemplo se puede tener el caso particular de que la
-     * recompensa de moverse food_shelf al mostrador es diferente a
-     * las demás Pondríamos en la base
-     * mover_(food_shelf,mostrador)=>0.8 como propiedad del objeto r y
-     * la siguiente consulta obtendría el costo, probabilidad y
-     * recompensa respectivo.
-     * ?-   open_kb('kb_proy2.txt',KB),
-     *      extension_de_propiedad_(KB,mover_(food_shelf,mostrador),Ans1),
-     *      extension_de_propiedad_(KB,mover(food_shelf,mostrador),Ans2),
-     *      append(Ans1,Ans2,Lista),
-     *      fusiona(Lista,Fusionada),imprime(Fusionada),nl.
-     *c=>1
-     *p=>0.9
-     *r=>0.8
-     *...
-     *Fusionada = [c=>1, p=>0.9, r=>0.8].
-     */
+    /* ACCIONES */
     /* RECOMPENSAS */
     objeto(r,top,[r=>val([mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1,agarrar(Oi)=>1])],[]),
     /* PROBABILIDADES */
     objeto(p,top,[p=>val([mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9,agarrar(Oi)=>0.9])],[]),
     /* COSTOS */
-    objeto(c,top,[c=>val([mover(mostrador, drink_shelf)=>1,mover(mostrador,food_shelf)=>2,mover(mostrador,bread_shelf)=>3,mover(drink_shelf, mostrador)=>1,mover(drink_shelf,food_shelf)=>1,mover(drink_shelf,bread_shelf)=>2,mover(food_shelf,mostrador)=>2,mover(food_shelf,drink_shelf)=>1,mover(food_shelf,bread_shelf)=>1,mover(bread_shelf,mostrador)=>3,mover(bread_shelf,drink_shelf)=>2,mover(bread_shelf,food_shelf)=>1,mover(Li,Li)=>0,mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1,agarrar(Oi)=>1])],[])
+    objeto(c,top,[c=>val([mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1,agarrar(Oi)=>1])],[])
 ]

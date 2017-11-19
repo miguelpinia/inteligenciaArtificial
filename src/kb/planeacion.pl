@@ -17,17 +17,18 @@ planeacion(KB,Desiciones,Plan):-
 	plan(KB,[0=>node(0,nil,0,edo(Pos,Izq,Der,Desiciones,[]))],[],Plan).
 
 /* Caso base si ya no hay pendientes ya terminamos y el plan esta dentro del estado */
-plan(_,[_=>node(_,_,_,edo(_,_,_,[],Plan))|_],_,Plan):-!.
+plan(_,[_=>node(_,_,_,edo(Pos,Izq,Der,[],Plan))|_],_,Plan):-
+    nl,nl,nl,write(edo(Pos,Izq,Der,[],Plan)),nl,nl,nl,!.
 
 /* Caso en que no es meta */
 
 plan(KB,[_=>node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual))|Resto],Cerrados,Plan):-
+    nl,nl,nl,write(edo(Pos,Izq,Der,Pend,PlanActual)),nl,
 	lista_de_valores(Resto,Abiertos),
 	append(Abiertos,Cerrados,Nodos),
 	findall(Id,member(node(Id,_,_),Nodos),Ids),
-	max_list(Ids,LastId),
+	max_list([Id|Ids],LastId),
 	plan_suc(KB,node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual)),LastId,Sucesores),
-
 	agrega_pq_muchos(Resto,Sucesores,Nuevos_abiertos),
 	plan(KB,Nuevos_abiertos,[node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual))|Cerrados],Plan).
 
@@ -67,7 +68,7 @@ plan_suc(KB,node(Id,Padre,G,edo(mostrador,Izq,Der,Pend,Plan)),LastId,Sucesores):
 	/*entregar*/
 	calcula_sucesores(KB,Acciones,node(Id,Padre,G,edo(mostrador,Izq,Der,Pend,Plan)),LastId,Sucesores),!.
 
-plan_suc(KB,node(Id,Padre,G,edo(Estante,[Oi],Der,Pend,Plan)),LastId,Sucesores):-
+plan_suc(KB,node(Id,Padre,G,edo(Estante,Izq,Der,Pend,Plan)),LastId,Sucesores):-
 	dif(Estante,mostrador),
 	/*Movernos */ extension_de_clase(KB,estante,Estantes),
 	delete(Estantes,Estante,Estantes_validos),
@@ -75,25 +76,50 @@ plan_suc(KB,node(Id,Padre,G,edo(Estante,[Oi],Der,Pend,Plan)),LastId,Sucesores):-
 	obten_creencias(KB,Creencias),
 	filtra_por_valor(Creencias,Estante,Filtrados),
 	lista_de_atributos(Filtrados,Objetos),
+    /* Calculamos los objetos que podemos buscar y agarrar*/
 	calcula_ba(Objetos,Ba),
-	append(Ba,[colocar(Oi)|Movimientos],Acciones),
-	/*entregar*/
-	calcula_sucesores(KB,Acciones,node(Id,Padre,G,edo(Estante,[Oi],Der,Pend,Plan)),LastId,Sucesores),!.
+    (
+		(
+			Izq=[],
+			(
+				(/* Si los dos brazos estan libres no podemos colocar */
+					Der=[],
+                    /* Podemos buscar y agarrar o movernos*/
+                	append(Ba,Movimientos,Acciones),
+					!
+				);
+				(/* Si sólo el izquierdo esta libre */
+					Der=[Oi],
+                    /* Podemos buscar y agarrar o movernos*/
+                	append(Ba,Movimientos,Acciones_),
+                    /* Además podemos colocar lo que tenemos en el brazo derecho */
+					Acciones=[colocar(Oi)|Acciones_]
+				)
+			),
+			!
 
-
-plan_suc(KB,node(Id,Padre,G,edo(Estante,Izq,[Oi],Pend,Plan)),LastId,Sucesores):-
-	dif(Estante,mostrador),
-	/*Movernos */ extension_de_clase(KB,estante,Estantes),
-	delete(Estantes,Estante,Estantes_validos),
-	calcula_mover(Estante,[mostrador|Estantes_validos],Movimientos),
-	obten_creencias(KB,Creencias),
-	filtra_por_valor(Creencias,Estante,Filtrados),
-	lista_de_atributos(Filtrados,Objetos),
-	calcula_ba(Objetos,Ba),
-	append(Ba,[colocar(Oi)|Movimientos],Acciones),
-	/*entregar*/
-	calcula_sucesores(KB,Acciones,node(Id,Padre,G,edo(Estante,Izq,[Oi],Pend,Plan)),LastId,Sucesores),!.
-
+		);
+		(
+			Izq=[Oi],
+			(
+				(/* Si sólo el derecho esta libre */
+					Der=[],
+                    /* Podemos buscar y agarrar o movernos */
+                	append(Ba,Movimientos,Acciones_),
+                    /* Además podemos colocar lo que tenemos en el brazo izquierdo */
+					Acciones=[colocar(Oi)|Acciones_],
+					!
+				);
+				(/* Si no hay brazo libre no puedo agarrar*/
+					Der=[Oj],
+                    /* Podemos colocar lo que tenemos en ambos brazos o movernos */
+					Acciones=[colocar(Oi)|[colocar(Oj)|Movimientos]]
+				)
+			)
+		)
+	),
+	calcula_sucesores(KB,Acciones,node(Id,Padre,G,edo(Estante,[Oi],Der,Pend,Plan)),LastId,Sucesores),
+    !.
 
 /* Calcula la secuencia de movientos posibles dado un origen y una lista de destinos */
 calcula_mover(Origen,[Destino|Resto],[mover(Origen,Destino)|Movimientos]):-
@@ -107,8 +133,8 @@ calcula_ba([],[]).
 
 calcula_sucesores(KB,[Accion|Acciones],node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan)),LastId,
 		[Key=>node(Nuevo_Id,Id,Nueva_G,edo(Nueva_pos,Nuevo_izq,Nuevo_der,Nuevos_pend,Nuevo_plan))|Sucesores]):-
-	write(node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan))),nl,
-	write(Accion),nl,
+	%write(node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan))),nl,
+	%write(Accion),nl,
 	(
 		(
 			Accion=mover(Pos,Lj),
@@ -172,6 +198,8 @@ calcula_sucesores(KB,[Accion|Acciones],node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan)),L
 		)
 	),
 	append(Plan,[Accion],Nuevo_plan),
+    write(Accion),nl,
+    write(Nuevo_plan),nl,nl,
 	obten_costo(KB,Accion,C),
 	/* Checar si es necesario el + 1 */
 	Nuevo_Id is LastId + 1,
