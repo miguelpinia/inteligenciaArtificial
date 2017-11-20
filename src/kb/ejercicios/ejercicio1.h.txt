@@ -1,0 +1,67 @@
+[
+    clase(top,none,[],[],[golem,r,p,c]),
+    /*
+    * El objeto golem de la clase top guarda el estado del robot,
+    * su posición
+    * lo que lleva en el brazo izquierdo
+    * lo que lleva en el brazo derecho
+    * la lista de creencias obj=>loc
+    * la lista de observaciones obj=>loc
+    */
+    objeto(golem,top,[
+        /* La posición actual de golem en los diferentes lugares*/
+        pos=>mostrador,
+        /* La lista de objeto=>lugar en donde golem cree que estan los objetos */
+        cree=>val([coca=>drink_shelf,heineken=>drink_shelf,noodles=>food_shelf,bisquits=>bread_shelf]),
+        /* La lista de objeto=>lugar ya observados */
+        obs=>val([]),
+        /* Los objetos que ha movido el robot se deben distinguir en el diagnóstico
+         * Esta lista guardará donde los encontró originalmente
+         */
+        movidos=>val([]),
+        /* Acciones pendientes entregar(Oi),reacomodar(Oi)*/ /* entregar(coca), entregar(kellogs), entregar(maruchan), reacomodar(noodles), reacomodar(bisquits),*/
+        pendientes=>val([entregar(coca)])
+    ],[]),
+    /* Aqui definimos clases y objetos con caracteristicas
+     * Creamos una superclase por estante y como subclases una por cada tipo de producto que se acomode en el estante,
+     * luego un objeto por cada producto (puede haber mas de uno de un mismo producto)
+     */
+    /*LAS BEBIDAS*/
+    clase(producto,top,[],[],[]),
+    clase(bebida,producto,[],[loc=>drink_shelf],[]),
+    clase(refresco,bebida,[],[],[coca]),
+    objeto(coca,refresco,[],[]),
+    clase(cerveza,bebida,[],[],[heineken]),
+    objeto(heineken,cerveza,[],[]),
+    /* LA COMIDA */
+    clase(food,producto,[],[loc=>food_shelf],[]),
+    clase(cereal,food,[],[],[kellogs]),
+    objeto(kellogs,cereal,[],[]),
+    clase(sopa,food,[],[],[noodles]),
+    objeto(noodles,sopa,[],[]),
+    /* EL PAN */
+    clase(bread,producto,[],[loc=>bread_shelf],[]),
+    clase(galletas,bread,[],[],[bisquits]),
+    objeto(bisquits,galletas,[],[]),
+    /* POSICIONES */
+    clase(lugar,top,[],[],[mostrador,inalcanzable]),
+    /* El objeto mostrador*/
+    objeto(mostrador,lugar,[],[]),
+    /* LOS BAZOS LOS CONSIDERAMOS LUGARES */
+    clase(brazo,lugar,[],[],[izq,der]),
+    objeto(izq,brazo,[],[]),
+    objeto(der,brazo,[],[]),
+    /* LOS ESTANTES DE LA TIENDA*/
+    clase(estante,lugar,[not(observado)],[],[drink_shelf,food_shelf,bread_shelf]),
+    objeto(drink_shelf,estante,[],[tiene=>[bisquits]]),
+    objeto(food_shelf,estante,[],[tiene=>[]]),
+    objeto(bread_shelf,estante,[],[tiene=>[]]),
+
+    /* ACCIONES */
+    /* RECOMPENSAS */
+    objeto(r,top,[r=>val([mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1,agarrar(Oi)=>1])],[]),
+    /* PROBABILIDADES */
+    objeto(p,top,[p=>val([mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9,agarrar(Oi)=>0.9])],[]),
+    /* COSTOS */
+    objeto(c,top,[c=>val([mover(mostrador,Li)=>1,mover(Li,Lj)=>1.73205807,buscar(Oi)=>0.25,colocar(Oi)=>0.5,agarrar(Oi)=>0.5])],[])
+]
