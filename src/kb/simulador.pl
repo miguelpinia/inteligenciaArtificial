@@ -6,22 +6,22 @@ simulador(KB):-
     !.
 
 simulador(KB):-
-    %write('XXXXXXXXXXXXXXXXXXXXXXXXx INICIAL ###############################'),nl,
-    %imprime(KB),nl,
     diagnostico(KB,Diagnostico,KB2),
-    %write('XXXXXXXXXXXXXXXXXXXXXXXXx DIAGNOSTICO ###############################'),nl,
-    %imprime(KB2),nl,
-    write('Mi diagnostico a cerca de las acciones del asistente son:'),nl,
-    imprime(Diagnostico),nl,
     decision(KB2,Decisiones),
-    write('Mi decision es:'),nl,
-    imprime(Decisiones),nl,
     planeacion(KB2,Decisiones,Plan),
-    write('Mi plan es:'),nl,
-    imprime(Plan),nl,
-    /* Ya no nos importa el resultado, se ciclará hasta que termine con las acciones pendientes */
+    ((not(es_vacia(Diagnostico)),
+      write('Mi diagnostico a cerca de las acciones del asistente son:'),nl,
+      imprime(Diagnostico),nl);
+     (write('No tengo información suficiente para realizar un diagnóstico.'),nl)),
+    ((not(es_vacia(Decisiones)),
+      write('Mi decision es:'),nl,
+      imprime(Decisiones),nl,
+      write('Mi plan es:'),nl,
+      imprime(Plan),nl);
+     (write('No tengo ínformación suficiente para tomar decisiones y diseñar un plan.'),nl)),
+        /* Ya no nos importa el resultado, se ciclará hasta que termine con las acciones pendientes */
     simula_plan(KB2,Plan,_,NuevaKB),
-    simulador(NuevaKB).
+    simulador(NuevaKB), !.
 
 /*
 * simula_plan(KB,Acciones,Ok,NuevaKB)
