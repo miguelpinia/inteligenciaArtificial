@@ -1,11 +1,16 @@
 /* Si ya no hay acciones pendientes ya terminamos*/
 simulador(KB):-
     obten_acciones_pendientes(KB,[]),
-    write('No hay más pendientes...'),nl,
+    %imprime(KB),nl,
+    nl,write('No hay más pendientes...'),nl,nl,
     !.
 
 simulador(KB):-
+    %write('XXXXXXXXXXXXXXXXXXXXXXXXx INICIAL ###############################'),nl,
+    %imprime(KB),nl,
     diagnostico(KB,Diagnostico,KB2),
+    %write('XXXXXXXXXXXXXXXXXXXXXXXXx DIAGNOSTICO ###############################'),nl,
+    %imprime(KB2),nl,
     write('Mi diagnostico a cerca de las acciones del asistente son:'),nl,
     imprime(Diagnostico),nl,
     decision(KB2,Decisiones),
@@ -28,13 +33,17 @@ simulador(KB):-
 simula_plan(KB,[Accion|Resto],Ok,NuevaKB):-
     simula_accion(KB,Accion,1,KB2),
     write('Accion: '),write(Accion),write(' Exito'),nl,
+    %write('#################'),write(Accion),write('#################'),nl,
+    %imprime(KB2),nl,
     simula_plan(KB2,Resto,Ok,NuevaKB),
     !.
 
 /* Si al ejecutar la primera accion fallamos, debemos terminar la ejecución del plan*/
 simula_plan(KB,[Accion|_],0,NuevaKB):-
     simula_accion(KB,Accion,0,NuevaKB),
-    write('Accion: '),write(Accion),write(' Falla'),nl,
+    write('Accion: '),write(Accion),write(' Falla'),nl,nl,
+    %write('#################'),write(Accion),write('#################'),nl,
+    %imprime(NuevaKB),nl,
     !.
 
 /* Caso cuando termina con todas las acciones ya terminamos satisfactoriamente*/
@@ -54,6 +63,7 @@ simula_accion(KB,Accion,0,_):-
     obten_probabilidad(KB,Accion,P),
     random(0,1,R),
     P =< R,
+    write('Falla por probabilidad'),nl,
     !.
 
 /*
@@ -114,16 +124,38 @@ simula_accion(KB,agarrar(Oi),1,NuevaKB):-
             extension_de_relacion_(KB,tiene,Ext),
             filtra_por_atributo(Ext,izq,[]),
             agrega_relacion_a_objeto(KB,tiene=>Oi,izq,KB2),
-            elimina_relacion_de_objeto(KB2,tiene=>Oi,Pos,NuevaKB),
-            /*Falta modificar la creencia de que esta donde estaba antes*/
+            elimina_relacion_de_objeto(KB2,tiene=>Oi,Pos,KB3),
+            /* Modifico la creencia*/
+            obten_creencias(KB,Creencias),
+            fusiona([Oi=>izq|Creencias],NuevasCreencias),
+            modifica_propiedad_de_objeto(KB3,cree=>val(NuevasCreencias),golem,KB4),
+            /* Modifico la observacion*/
+            obten_observaciones(KB,Observaciones),
+            fusiona([Oi=>izq|Observaciones],NuevasObservaciones),
+            modifica_propiedad_de_objeto(KB4,obs=>val(NuevasObservaciones),golem,KB5),
+            /* Modifico los movidos ya que una vez tomado no importa lo que el asistente hizo YA SE QUE YO LO TENGO*/
+            obten_movidos(KB,Movidos),
+            union([Oi],Movidos,NuevosMovidos),
+            modifica_propiedad_de_objeto(KB5,movidos=>val(NuevosMovidos),golem,NuevaKB),
             !
         );
         (/* Brazo derecho libre*/
             extension_de_relacion_(KB,tiene,Ext),
             filtra_por_atributo(Ext,der,[]),
             agrega_relacion_a_objeto(KB,tiene=>Oi,der,KB2),
-            elimina_relacion_de_objeto(KB2,tiene=>Oi,Pos,NuevaKB)
-            /*Falta modificar la creencia de que esta donde estaba antes*/
+            elimina_relacion_de_objeto(KB2,tiene=>Oi,Pos,KB3),
+            /* Modifico la creencia*/
+            obten_creencias(KB,Creencias),
+            fusiona([Oi=>der|Creencias],NuevasCreencias),
+            modifica_propiedad_de_objeto(KB3,cree=>val(NuevasCreencias),golem,KB4),
+            /* Modifico la observacion*/
+            obten_observaciones(KB,Observaciones),
+            fusiona([Oi=>der|Observaciones],NuevasObservaciones),
+            modifica_propiedad_de_objeto(KB4,obs=>val(NuevasObservaciones),golem,KB5),
+            /* Modifico los movidos ya que una vez tomado no importa lo que el asistente hizo YA SE QUE YO LO TENGO*/
+            obten_movidos(KB,Movidos),
+            union([Oi],Movidos,NuevosMovidos),
+            modifica_propiedad_de_objeto(KB5,movidos=>val(NuevosMovidos),golem,NuevaKB)
         )
     ),
     !.
@@ -135,7 +167,7 @@ simula_accion(KB,colocar(Oi),1,NuevaKB):-
     /* Un brazo solo puede cargar un objeto a la vez */
     filtra_por_valor(Ext,Oi,[Brazo=>[Oi]]),
     /* Solo en caso de tener en un brazo podemos colocar*/
-    (Brazo = izq ; Brazo = der),
+    ((Brazo = izq ,!); Brazo = der),
     (
         (/* Si estamos en el mostrador lo estamos entregando */
             Pos=mostrador,
@@ -154,18 +186,20 @@ simula_accion(KB,colocar(Oi),1,NuevaKB):-
         (/* Si estamos colocando en un estante podríamos haber terminando de reacomodar(Oi)*/
             dif(mostrador,Pos),
             /* Agrega la relacion tiene=>Oi al estante donde estamos */
-            agrega_relacion_a_objeto(KB,tiene=>Oi,Pos,KB2_),
+            agrega_relacion_a_objeto(KB,tiene=>Oi,Pos,KB2),
+            /* Quitamos la relación tiene=>Oi del brazo en el que esté */
+            elimina_relacion_de_objeto(KB2,tiene=>Oi,Brazo,KB3),
             /* Obtenemos las actividades pendientes*/
-            propiedades_de_objeto(KB2_,golem,Props),
+            propiedades_de_objeto(KB3,golem,Props),
             filtra_por_atributo(Props,pendientes,[_=>val(Pends)]),
             /* Eliminamos la actividad pendiente entregar(Oi) */
             delete(Pends,reacomodar(Oi),NuevosPendientes),
             /* Actuaizamos los pendientes en la KB */
-            modifica_propiedad_de_objeto(KB2_,pendientes=>val(NuevosPendientes),golem,KB2__),
+            modifica_propiedad_de_objeto(KB3,pendientes=>val(NuevosPendientes),golem,KB4),
             /* Agregamos el objeto a los movidos */
-            obten_movidos(KB2__,MovidosPorGolem),
+            obten_movidos(KB4,MovidosPorGolem),
             fusiona([Oi|MovidosPorGolem],NuevosMovidos),
-            modifica_propiedad_de_objeto(KB2__,movidos=>val(NuevosMovidos),golem,NuevaKB)
+            modifica_propiedad_de_objeto(KB4,movidos=>val(NuevosMovidos),golem,NuevaKB)
         )
     ),
     !.

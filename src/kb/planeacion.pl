@@ -49,30 +49,40 @@ plan(KB,[_=>node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual))|Resto],Cerrados,Pl
 	agrega_pq_muchos(Resto,Sucesores,Nuevos_abiertos),
 	plan(KB,Nuevos_abiertos,[node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual))|Cerrados],Plan).
 
+
 /*
 * lugares_validos(KB,Pendientes,Lugares)
 * regresa solo los objetos que nos interesan según la meta
 * podemos solo tratar de buscar y agarrar los objetos que tenemos
 * en los pendientes para reducir el branch factor
 */
+lugares_validos(KB,_,[mostrador|Ext]):-
+    extension_de_clase(KB,estante,Ext).
 
-lugares_validos(KB,[entregar(Oi)|Resto],Lugares):-
+/*
+* lugares_validos_(KB,Pendientes,Lugares)
+* lo mismo que lugares_validos_(KB,Pendientes,Lugares) pero puede contener izq o der
+*/
+
+lugares_validos_(KB,[entregar(Oi)|Resto],Lugares):-
     obten_creencias(KB,Creencias),
     filtra_por_atributo(Creencias,Oi,[Oi=>LugarOi|_]),
-    lugares_validos(KB,Resto,RestoLugares),
+    lugares_validos_(KB,Resto,RestoLugares),
     lugar_correcto_de_producto(KB,Oi,LugarCorrecto),
-    union([LugarCorrecto,mostrador,LugarOi],RestoLugares,Lugares),
+    append([LugarCorrecto,mostrador,LugarOi],RestoLugares,Lugares_),
+    list_to_set(Lugares_,Lugares),
     !.
 
-lugares_validos(KB,[reacomodar(Oi)|Resto],Lugares):-
+lugares_validos_(KB,[reacomodar(Oi)|Resto],Lugares):-
     obten_creencias(KB,Creencias),
     filtra_por_atributo(Creencias,Oi,[Oi=>LugarOi|_]),
-    lugares_validos(KB,Resto,RestoLugares),
+    lugares_validos_(KB,Resto,RestoLugares),
     lugar_correcto_de_producto(KB,Oi,LugarCorrecto),
-    union([LugarCorrecto,LugarOi],RestoLugares,Lugares),
+    append([LugarCorrecto,mostrador,LugarOi],RestoLugares,Lugares_),
+    list_to_set(Lugares_,Lugares),
     !.
 
-lugares_validos(_,[],[]).
+lugares_validos_(_,[],[]).
 
 /*
 * objetos_validos(Pendientes,Objetos)
