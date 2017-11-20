@@ -127,7 +127,8 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
             imprime(InalcanzablesNuevos),nl,
             append(Inalcanzables,InalcanzablesNuevos,NuevosInalcanzables_),
             list_to_set(NuevosInalcanzables_,NuevosInalcanzables),
-            modifica_propiedad_de_objeto(KB2,inalcanzables=>val(NuevosInalcanzables),golem,KB2_)
+            modifica_propiedad_de_objeto(KB2,inalcanzables=>val(NuevosInalcanzables),golem,KB2_),
+            !
         );
         (
             KB2_=KB2
@@ -161,6 +162,19 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
     propiedades_de_objeto(KB3,golem,Props),
     filtra_por_atributo(Props,pendientes,[_=>val(Pends)]),
     subtract(AReac_,NoAlcanzablesAqui,AReac),
+    (
+        (
+            /* Calculo loq ue vi menos lo que ya hay */
+            subtract(AReac,Pends,NAReac),
+            dif(NAReac,[]),
+            nl,write('Debo reacomodar:'),nl,
+            imprime(NAReac),nl,
+            !
+        );
+        (
+            true
+        )
+    ),
     union(Pends,AReac,NuevosPendientes),
     /* Actualizamos la lista de pendientes*/
     modifica_propiedad_de_objeto(KB3,pendientes=>val(NuevosPendientes),golem,NuevaKB_),
