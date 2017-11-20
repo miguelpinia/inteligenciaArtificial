@@ -31,19 +31,22 @@ simulador(KB):-
 
 /* Si al ejecutar la primera acción todo sale bien seguimos con la ejecución*/
 simula_plan(KB,[Accion|Resto],Ok,NuevaKB):-
-    simula_accion(KB,Accion,1,KB2),
-    write('Accion: '),write(Accion),write(' Exito'),nl,
-    %write('#################'),write(Accion),write('#################'),nl,
-    %imprime(KB2),nl,
-    simula_plan(KB2,Resto,Ok,NuevaKB),
-    !.
-
-/* Si al ejecutar la primera accion fallamos, debemos terminar la ejecución del plan*/
-simula_plan(KB,[Accion|_],0,NuevaKB):-
-    simula_accion(KB,Accion,0,NuevaKB),
-    write('Accion: '),write(Accion),write(' Falla'),nl,nl,
-    %write('#################'),write(Accion),write('#################'),nl,
-    %imprime(NuevaKB),nl,
+    simula_accion(KB,Accion,AOk,KB2),
+    (
+        (
+            AOk=1,
+            write('Accion: '),write(Accion),write(' Exito'),nl,
+            %imprime(KB2),nl,
+            simula_plan(KB2,Resto,Ok,NuevaKB),
+            !
+        );
+        (
+            Ok=0,
+            write('Accion: '),write(Accion),write(' Falla'),nl,nl,
+            %imprime(KB2),nl,
+            NuevaKB = KB2
+        )
+    ),
     !.
 
 /* Caso cuando termina con todas las acciones ya terminamos satisfactoriamente*/
@@ -59,11 +62,12 @@ simula_plan(KB,[],1,KB).
 * Cada acción tiene una probabilidad de éxito,
 * Si un número aleatorio del [0,1) es mayor o igual a la probabilidad fallamos.
 */
-simula_accion(KB,Accion,0,_):-
+simula_accion(KB,Accion,Ok,KB):-
     obten_probabilidad(KB,Accion,P),
-    random(0,1,R),
+    random(0.0,1.0,R),
     P =< R,
     write('Falla por probabilidad'),nl,
+    Ok=0,
     !.
 
 /*

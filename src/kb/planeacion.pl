@@ -13,7 +13,10 @@ Calcula los sucesores del nodo Id
 planeacion(KB,Desiciones,Plan):-
 	obten_posicion(KB,Pos),
 	cargando_izq(KB,Izq),
+    %write('XXXXXXXX'),write(Izq),write('XXXXXXXX'),nl,
 	cargando_der(KB,Der),
+    %write('XXXXXXXXXXXXXXXXX'),nl,
+    %write(node(0,nil,0,edo(Pos,Izq,Der,Desiciones,[]))),nl,
 	plan(KB,[0=>node(0,nil,0,edo(Pos,Izq,Der,Desiciones,[]))],[],PlanBA),
     transforma_plan(PlanBA,Plan).
 
@@ -277,7 +280,7 @@ calcula_sucesores(KB,[Accion|Acciones],node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan)),L
 						Nuevos_pend = Pend
 					)
 				)
-			)
+			),!
 		);
 		(
 			Accion=ba(Oi),

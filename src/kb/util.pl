@@ -489,10 +489,10 @@ obten_acciones_pendientes(KB,Pendientes):-
 
 /*Cargando izquierdo*/
 cargando_izq(KB,Carga):-
-    relaciones_de_objeto(KB,izq,tiene=>Carga);
-    Carga=[].
+    ((relaciones_de_objeto(KB,izq,[tiene=>Carga]),!);
+    Carga=[]).
 
 /*Cargando derecho*/
 cargando_der(KB,Carga):-
-    relaciones_de_objeto(KB,der,tiene=>Carga);
-    Carga=[].
+    ((relaciones_de_objeto(KB,der,[tiene=>Carga]),!);
+    Carga=[]).
