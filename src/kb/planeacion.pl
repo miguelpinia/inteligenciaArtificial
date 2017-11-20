@@ -43,7 +43,7 @@ plan(KB,[_=>node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual))|Resto],Cerrados,Pl
     %nl,write(node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual))),nl,
 	lista_de_valores(Resto,Abiertos),
 	append(Abiertos,Cerrados,Nodos),
-	findall(Id,member(node(Id,_,_),Nodos),Ids),
+	findall(I,member(node(I,_,_,_),Nodos),Ids),
 	max_list([Id|Ids],LastId),
 	plan_suc(KB,node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual)),LastId,Sucesores),
 	agrega_pq_muchos(Resto,Sucesores,Nuevos_abiertos),

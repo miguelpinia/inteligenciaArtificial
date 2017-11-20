@@ -145,9 +145,10 @@ simula_accion(KB,colocar(Oi),1,NuevaKB):-
             propiedades_de_objeto(KB2_,golem,Props),
             filtra_por_atributo(Props,pendientes,[_=>val(Pends)]),
             /* Eliminamos la actividad pendiente entregar(Oi) */
-            delete(Pends,entregar(Oi),NuevosPendientes),
+            delete(Pends,entregar(Oi),NPendientes),
+            delete(NPendientes,reacomodar(Oi),NuevosPendientes),
             /* Actuaizamos los pendientes en la KB */
-            modifica_propiedad_de_objeto(KB2_,pendientes=>val(NuevosPendientes),golem,KB2),
+            modifica_propiedad_de_objeto(KB2_,pendientes=>val(NuevosPendientes),golem,NuevaKB),
             !
         );
         (/* Si estamos colocando en un estante podríamos haber terminando de reacomodar(Oi)*/
@@ -164,11 +165,9 @@ simula_accion(KB,colocar(Oi),1,NuevaKB):-
             /* Agregamos el objeto a los movidos */
             obten_movidos(KB2__,MovidosPorGolem),
             fusiona([Oi|MovidosPorGolem],NuevosMovidos),
-            modifica_propiedad_de_objeto(KB2__,movidos=>val(NuevosMovidos),golem,KB2)
+            modifica_propiedad_de_objeto(KB2__,movidos=>val(NuevosMovidos),golem,NuevaKB)
         )
     ),
-    /* Finalmente eliminamos la relacion tiene=>Oi del brazo izquierdo */
-    elimina_relacion_de_objeto(KB2,tiene=>Oi,Brazo,NuevaKB),
     !.
 
 /*
