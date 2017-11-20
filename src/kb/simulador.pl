@@ -31,18 +31,19 @@ simulador(KB):-
 
 /* Si al ejecutar la primera acción todo sale bien seguimos con la ejecución*/
 simula_plan(KB,[Accion|Resto],Ok,NuevaKB):-
+    write('Accion: '),write(Accion),nl,
     simula_accion(KB,Accion,AOk,KB2),
     (
         (
             AOk=1,
-            write('Accion: '),write(Accion),write(' Exito'),nl,
+            nl,write('Exito'),nl,
             %imprime(KB2),nl,
             simula_plan(KB2,Resto,Ok,NuevaKB),
             !
         );
         (
             Ok=0,
-            write('Accion: '),write(Accion),write(' Falla'),nl,nl,
+            nl,write('Falla'),nl,nl,
             %imprime(KB2),nl,
             NuevaKB = KB2
         )
@@ -105,15 +106,64 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
     append(NObs,Obs2,NuevasObservaciones),
     modifica_propiedad_de_objeto(KB,obs=>val(NuevasObservaciones),golem,KB2),
     /* Necesiamos saber si hay objetos que se deben reacomodar*/
-    lista_de_objetos_a_reacomodar(KB2,Contenido,Pos,AReac),
-    /* Silo en caso de que el objeto que buscamos está en lo que vimos estamos bien*/
-    ((member(Oi,Contenido),Ok=1);Ok=0),
+    lista_de_objetos_a_reacomodar(KB2,Contenido,Pos,AReac_),
+    %/* Silo en caso de que el objeto que buscamos está en lo que vimos estamos bien*/
+    %((member(Oi,Contenido),Ok=1);Ok=0),
+    /* Buscar los objetos que no son alcanzables e imprime un mensaje. */
+    extension_de_propiedad_(KB2, alcanzable, Objs),
+    filtra_por_valor(Objs, no, NoAlcanzables),
+    lista_de_atributos(NoAlcanzables, ObjsNoAlcanzables),
+    intersection(ObjsNoAlcanzables,Contenido,NoAlcanzablesAqui),
+    (
+        (
+            /* Solo cambiamos algo si hay que hacerlo*/
+            dif(NoAlcanzablesAqui,[]),
+            /* Agregamos los objetos que no podemos alcanzar en este lugar */
+            obten_inalcanzables(KB,Inalcanzables),
+            subtract(NoAlcanzablesAqui,Inalcanzables,InalcanzablesNuevos),
+            /*Solo avanzo si hay nuevos inalcanzables, en otro caso ya avisé*/
+            dif(InalcanzablesNuevos,[]),
+            nl,write('Me dí cuenta que no puedo alcanzar esto:'),nl,
+            imprime(InalcanzablesNuevos),nl,
+            append(Inalcanzables,InalcanzablesNuevos,NuevosInalcanzables_),
+            list_to_set(NuevosInalcanzables_,NuevosInalcanzables),
+            modifica_propiedad_de_objeto(KB2,inalcanzables=>val(NuevosInalcanzables),golem,KB2_)
+        );
+        (
+            KB2_=KB2
+        )
+    ),
+    (
+        (
+
+            dif(NoAlcanzablesAqui,[]),
+            /* XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */
+            /* Si hay acciones pendientes con objetos no alcanzables que ya he observado tengo que parar*/
+            /* Debo recalcular mi plan                                                                  */
+            /* XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */
+            obten_acciones_pendientes(KB2,Pendientes),
+            objetos_validos(Pendientes,ObjetosEnPendientes),
+            intersection(NoAlcanzablesAqui,ObjetosEnPendientes,NoAlcanzablesAquiEnPendientes),
+            /* Avanzo solo en caso de que haya alguna meta que me de cuenta que no puedo despachar */
+            dif(NoAlcanzablesAquiEnPendientes,[]),
+            nl, write('Los siguientes objetos no se pueden alcanzar y se omitiran de los pendientes: '),nl,
+            imprime(NoAlcanzablesAqui),
+            elimina_de_pendientes(Pendientes,ObjetosEnPendientes,NuevosPendentes),
+            modifica_propiedad_de_objeto(KB2_,pendientes=>val(NuevosPendentes),golem,KB3),
+            Ok=0,
+            !
+        );
+        (KB3=KB2,
+        /* Solo en caso de que el objeto que buscamos está en lo que vimos estamos bien*/
+        ((member(Oi,Contenido),Ok=1);Ok=0))
+    ),
     /*Obtenemos la lista de tareas pendientes */
-    propiedades_de_objeto(KB2,golem,Props),
+    propiedades_de_objeto(KB3,golem,Props),
     filtra_por_atributo(Props,pendientes,[_=>val(Pends)]),
+    subtract(AReac_,NoAlcanzablesAqui,AReac),
     union(Pends,AReac,NuevosPendientes),
     /* Actualizamos la lista de pendientes*/
-    modifica_propiedad_de_objeto(KB2,pendientes=>val(NuevosPendientes),golem,NuevaKB_),
+    modifica_propiedad_de_objeto(KB3,pendientes=>val(NuevosPendientes),golem,NuevaKB_),
     /* Lo marcamos como observado*/
     (agrega_propiedad_a_objeto(NuevaKB_,observado,Pos,NuevaKB);modifica_propiedad_de_objeto(NuevaKB_,observado,Pos,NuevaKB)),
     !.

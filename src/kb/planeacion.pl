@@ -59,8 +59,11 @@ plan(KB,[_=>node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual))|Resto],Cerrados,Pl
 * podemos solo tratar de buscar y agarrar los objetos que tenemos
 * en los pendientes para reducir el branch factor
 */
-lugares_validos(KB,_,[mostrador|Ext]):-
-    extension_de_clase(KB,estante,Ext).
+%lugares_validos(KB,_,[mostrador|Ext]):-
+    %extension_de_clase(KB,estante,Ext).
+
+lugares_validos(KB,Pendientes,Lugares):-
+    lugares_validos_(KB,Pendientes,Lugares).
 
 /*
 * lugares_validos_(KB,Pendientes,Lugares)
@@ -81,7 +84,7 @@ lugares_validos_(KB,[reacomodar(Oi)|Resto],Lugares):-
     filtra_por_atributo(Creencias,Oi,[Oi=>LugarOi|_]),
     lugares_validos_(KB,Resto,RestoLugares),
     lugar_correcto_de_producto(KB,Oi,LugarCorrecto),
-    append([LugarCorrecto,mostrador,LugarOi],RestoLugares,Lugares_),
+    append([LugarCorrecto,LugarOi],RestoLugares,Lugares_),
     list_to_set(Lugares_,Lugares),
     !.
 

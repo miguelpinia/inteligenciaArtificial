@@ -501,3 +501,9 @@ cargando_der(KB,Carga):-
  * Verifica si una lista es vacía.
  */
 es_vacia(Lista) :- Lista = [].
+
+/*
+* Obtiene los objetos que golem sabe son inalcanzables
+*/
+obten_inalcanzables(KB,Inalcanzables):-
+    extension_de_propiedad_(KB,inalcanzables,[_=>val(Inalcanzables)]).
