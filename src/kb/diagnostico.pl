@@ -11,36 +11,36 @@ diagnostico(KB,Diagnostico,NuevaKB):-
     /* Fusionamos creencias y observaciones */
     append(Observaciones,Creencias,ObsCre),
     fusiona(ObsCre,ObsCreFus),
-    /* 
+    /*
     * Eliminamos objetos no observados en caso de que ya se hayan observado todos los estantes,
     * Más adelante podremos reagregar un objeto simulando el caso en el que nos mueven las cosas de lugar
     */
-    elimina_objetos_no_observados(KB,Observaciones,ObsCreFus,NuevasCreencias),
-    /* 
+    elimina_objetos_no_observados(KB,Observaciones,ObsCreFus,NuevasCreencias,KB2),
+    /*
     * Obtenemos los estantes observados para decidir que objetos vamos a diagnosticar
     */
-    obten_estantes_observados(KB,EstantesObservados),
-    /* 
+    obten_estantes_observados(KB2,EstantesObservados),
+    /*
     * Obtenemos los objetos a diagnosticar
-    * OJO: Si ya se han observado todos los estantes, en este punto deja de haber busquedas ya que en tal caso, 
+    * OJO: Si ya se han observado todos los estantes, en este punto deja de haber busquedas ya que en tal caso,
     * ya se habrán eliminado los objetos no observados.
     * Si es así ObjetosADiagnosticar sempre será [] que es un estado meta para la busqueda.
     */
     obten_objetos_a_diagnosticar(NuevasCreencias,Observaciones,EstantesObservados,ObjetosADiagnosticar),
     /* Hacemos el diagnóstico de los objetos requeridos */
-    diag(KB,[node(0,null,ObjetosADiagnosticar)],[],Meta),
+    diag(KB2,[node(0,null,ObjetosADiagnosticar)],[],Meta),
     append(Meta,NuevasCreencias,DiagnosticoYNuevasCreencias),
     fusiona(DiagnosticoYNuevasCreencias,SiguientesCreencias),
-    /* 
+    /*
     * Generamos el diagnostico en base a las SiguientesCreencias y lo que ha reacomodado el robot
     * Los objetos reacomodados por el robot NO APARECEN EN EL DIAGNOSTICO
     */
-    extension_de_clase(KB,producto,Productos),
-    obten_movidos(KB,MovidosPorGolem),
+    extension_de_clase(KB2,producto,Productos),
+    obten_movidos(KB2,MovidosPorGolem),
     subtract(Productos,MovidosPorGolem,NoMovidosPorGolem),
     genera_diagnostico(SiguientesCreencias,NoMovidosPorGolem,Diagnostico),
     /* Actualiza la KB para tener las SiguientesCreencias */
-    modifica_propiedad_de_objeto(KB,cree=>val(SiguientesCreencias),golem,NuevaKB).
+    modifica_propiedad_de_objeto(KB2,cree=>val(SiguientesCreencias),golem,NuevaKB).
 
 /*
 * diag(KB,Abiertos,Cerrados,Meta)
@@ -48,7 +48,7 @@ diagnostico(KB,Diagnostico,NuevaKB):-
 * Hace el diagnostico por medio de un DFS.
 * estados se representan como listas objeto=>lugar
 * [coca=>bebidas,mundet=>_]
-* Los estados meta son listas donde todos sus objetos tienen un lugar concreto, es decir no puede haber 
+* Los estados meta son listas donde todos sus objetos tienen un lugar concreto, es decir no puede haber
 * elementos del tipo objeto=>_
 * para testear se hace la pregunta del tipo not(member(_=>'#',Estado)),
 * Se supone que no hay lugar con identificador '#'
@@ -75,7 +75,7 @@ diag(KB,[node(Id,IdPadre,Estado)|RestoNodos],Cerrados,Meta):-
     diag(KB,NuevosAbiertos,[node(Id,IdPadre,Estado),Cerrados],Meta),
     !.
 
-/* 
+/*
 * El diagnostico para cuando ya no hay más nodos que abrir es que no hay solución
 * Por la definición de los estados esto nunca debería pasar.
 */
@@ -96,7 +96,7 @@ suc_diag(KB,LastId,node(Id,_,Estado),Sucesores):-
 
 /*
 * agrega_sucesores(KB,PQ,IdPadre,Estado,UltimoIDUsado,NoObservados,NPQ)
-* 
+*
 */
 agrega_sucesores(KB,PQ,IdPadre,Estado,UltimoIDUsado,[Lugar|Resto],NPQ):-
     primera(_=>'#',Estado,Producto=>_),
@@ -109,7 +109,7 @@ agrega_sucesores(KB,PQ,IdPadre,Estado,UltimoIDUsado,[Lugar|Resto],NPQ):-
 
 /* Si ya no hay nada que agregar ya acabamos*/
 agrega_sucesores(_,PQ,_,_,_,[],PQ).
-    
+
 
 /*
 * genera_diagnostico de las actividades realizadas por el ASISTENTE HUMANO
@@ -141,7 +141,7 @@ genera_colocar([],[]).
 
 
 /*Elimina los objetos no observados siempre y cuando ya se hayan observado los 3 estantes*/
-elimina_objetos_no_observados(KB,Observaciones,Creencias,NuevasCreencias):-
+elimina_objetos_no_observados(KB,Observaciones,Creencias,NuevasCreencias,NuevaKB):-
     obten_estantes_no_observados(KB,[]),
     /*Obtenemos los objetos observados*/
     lista_de_atributos(Observaciones,ObjetosObservados),
@@ -149,15 +149,48 @@ elimina_objetos_no_observados(KB,Observaciones,Creencias,NuevasCreencias):-
     * Pueden habernos movido de lugar un objeto o que realmente no esté en los estantes
     * Si está en otro estante eventualmente lo agragará cuando vuelva a observar el estante
     */
-    filtra_por_atributos(Creencias,ObjetosObservados,NuevasCreencias).
+    filtra_por_atributos(Creencias,ObjetosObservados,NuevasCreencias),
+    /*Ahora eliminamos cualquier pendiente que tenga que ver con los que borramos*/
+    /* Obtenemos las creecias eliminadas*/
+    subtract(Creencias,NuevasCreencias,CreenciasEliminadas),
+    /* Obtenemos los objetos relacionadas a la creencia */
+    lista_de_atributos(CreenciasEliminadas,ObjetosEliminados),
+    /* Obtenemos los pendientes de golem */
+    obten_acciones_pendientes(KB,Pendientes),
+    /* Eliminamos los pendientes de los objetos que eliminamos*/
+    elimina_de_pendientes(Pendientes,ObjetosEliminados,NuevosPendientes),
+    /* modificamos la base con los nuevos pendientes */
+    modifica_propiedad_de_objeto(KB,pendientes=>val(NuevosPendientes),golem,NuevaKB),
+    !.
 
 /*Si no se han observado todos los estantes, no se pueden liminar objetos de las creencias*/
-elimina_objetos_no_observados(_,_,Creencias,Creencias).
+elimina_objetos_no_observados(KB,_,Creencias,Creencias,KB).
+
+/*
+* elimina_de_pendientes(Pendientes,Objetos,NuevosPendientes)
+*/
+elimina_de_pendientes([Pendiente|Resto],Objetos,NuevosPendientes):-
+    elimina_de_pendientes(Resto,Objetos,RestoPendientes),
+    ((Pendiente=entregar(Oi),!);Pendiente=reacomodar(Oi)),
+    (
+        (
+            member(Oi,Objetos),
+            NuevosPendientes = RestoPendientes,
+            !
+        );
+        (
+            not(member(Oi,Objetos)),
+            NuevosPendientes = [Pendiente|RestoPendientes]
+        )
+    ),
+    !.
+
+elimina_de_pendientes([],_,[]).
 
 /*
 * obten_objetos_a_diagnosticar(Creencias,Observaciones,EstantesObservados,ObjetosADiagnosticar)
-* Obtiene los objetos que tenemos que diagnosticar, 
-* Para tener que dignosticar un objeto se tiene que cumplir 
+* Obtiene los objetos que tenemos que diagnosticar,
+* Para tener que dignosticar un objeto se tiene que cumplir
 * que en la creencia se encuentre objeto=lugar
 * que lugar ya haya sido observado
 * que objeto=lugar no esté en las observaciones
