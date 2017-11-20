@@ -37,7 +37,9 @@ diagnostico(KB,Diagnostico,NuevaKB):-
     */
     extension_de_clase(KB2,producto,Productos),
     obten_movidos(KB2,MovidosPorGolem),
+    %write('XXXXXXXXXXXXXX MOVIDOS XXXXXxxx'),write(MovidosPorGolem),nl,
     subtract(Productos,MovidosPorGolem,NoMovidosPorGolem),
+    %write('XXXXXXXXXXXXXX NO MOVIDOS XXXXXxxx'),write(NoMovidosPorGolem),nl,
     genera_diagnostico(SiguientesCreencias,NoMovidosPorGolem,Diagnostico),
     /* Actualiza la KB para tener las SiguientesCreencias */
     modifica_propiedad_de_objeto(KB2,cree=>val(SiguientesCreencias),golem,NuevaKB).
@@ -116,9 +118,12 @@ agrega_sucesores(_,PQ,_,_,_,[],PQ).
 */
 genera_diagnostico(Creencias,NoMovidosPorGolem,Diagnostico):-
     filtra_por_atributos(Creencias,NoMovidosPorGolem,CrenciasIncluidas),
+    %write('XXXXXXXXXX CREENCIAS XXXXXXXX'),write(NoMovidosPorGolem),nl,
+    %write('XXXXXXXXXX NoMovidoPorGolem XXXXXXXX'),write(Creencias),nl,
+    %write('XXXXXXXXXX CrenciasIncluidas XXXXXXXX'),write(CrenciasIncluidas),nl,
     lista_de_valores(CrenciasIncluidas,Estantes_),
     list_to_set(Estantes_,Estantes),
-    genera_acciones(Estantes,mostrador,Creencias,Diagnostico),
+    genera_acciones(Estantes,mostrador,CrenciasIncluidas,Diagnostico),
     !.
 
 genera_acciones([Estante|Resto],Anterior,Creencias,Acciones):-
@@ -159,8 +164,21 @@ elimina_objetos_no_observados(KB,Observaciones,Creencias,NuevasCreencias,NuevaKB
     obten_acciones_pendientes(KB,Pendientes),
     /* Eliminamos los pendientes de los objetos que eliminamos*/
     elimina_de_pendientes(Pendientes,ObjetosEliminados,NuevosPendientes),
-    /* modificamos la base con los nuevos pendientes */
-    modifica_propiedad_de_objeto(KB,pendientes=>val(NuevosPendientes),golem,NuevaKB),
+    (
+        ( /* Caso en el que no quitamos nada */
+            length(Pendientes,L),
+            length(NuevosPendientes,L),
+            NuevaKB = KB,
+            !
+        );
+        (/* Caso en el que quitamos metas, hay que avisar...*/
+            write('No encontré los objetos en las siguientes metas, así que las eliminaré de los pendientes:'),nl,
+            subtract(Pendientes,NuevosPendientes,Eliminadas),
+            imprime(Eliminadas),nl,
+            /* modificamos la base con los nuevos pendientes */
+            modifica_propiedad_de_objeto(KB,pendientes=>val(NuevosPendientes),golem,NuevaKB)
+        )
+    ),
     !.
 
 /*Si no se han observado todos los estantes, no se pueden liminar objetos de las creencias*/
