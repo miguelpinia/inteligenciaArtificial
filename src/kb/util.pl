@@ -307,7 +307,7 @@ agrega_pq([],Key=>Val,[Key=>Val]):-
     !.
 
 agrega_pq([Lower=>Value|RPQ],Key=>Val,[Key=>Val|[Lower=>Value|RPQ]]):-
-    Key=<Lower,
+    Key<Lower,
     !.
 
 agrega_pq([Lower=>Value|RPQ],Key=>Val,[Lower=>Value|NRPQ]):-
