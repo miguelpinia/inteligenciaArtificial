@@ -8,11 +8,6 @@ decision(KB, Decisiones) :-
     calcula_decisiones(KB, [], Decisiones), !.
 
 /*
- * Verifica si una lista es vacía.
- */
-es_vacia(Lista) :- Lista = [].
-
-/*
  * Obtiene el lugar Lugar actual del producto Producto.
  */
 lugar_actual_de_producto(KB, Producto, Lugar) :-

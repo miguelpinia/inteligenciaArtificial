@@ -496,3 +496,8 @@ cargando_izq(KB,Carga):-
 cargando_der(KB,Carga):-
     ((relaciones_de_objeto(KB,der,[tiene=>Carga]),!);
     Carga=[]).
+
+/*
+ * Verifica si una lista es vacía.
+ */
+es_vacia(Lista) :- Lista = [].
