@@ -33,11 +33,14 @@ transforma_plan([Accion|RestoPlanBA],[Accion|RestoPlan]):-
 transforma_plan([],[]).
 
 /* Caso base si ya no hay pendientes ya terminamos y el plan esta dentro del estado */
-plan(_,[_=>node(_,_,_,edo(_,_,_,[],Plan))|_],_,Plan):-!.
+plan(_,[_=>node(Id,Padre,G,edo(Pos,Izq,Der,[],Plan))|_],_,Plan):-
+    %nl,write(node(Id,Padre,G,edo(Pos,Izq,Der,[],Plan))),nl,
+    !.
 
 /* Caso en que no es meta */
 
 plan(KB,[_=>node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual))|Resto],Cerrados,Plan):-
+    %nl,write(node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual))),nl,
 	lista_de_valores(Resto,Abiertos),
 	append(Abiertos,Cerrados,Nodos),
 	findall(Id,member(node(Id,_,_),Nodos),Ids),
@@ -47,22 +50,56 @@ plan(KB,[_=>node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual))|Resto],Cerrados,Pl
 	plan(KB,Nuevos_abiertos,[node(Id,Padre,G,edo(Pos,Izq,Der,Pend,PlanActual))|Cerrados],Plan).
 
 /*
-* lugares_validos(Pendientes,Lugares)
+* lugares_validos(KB,Pendientes,Lugares)
 * regresa solo los objetos que nos interesan según la meta
 * podemos solo tratar de buscar y agarrar los objetos que tenemos
 * en los pendientes para reducir el branch factor
 */
 
+lugares_validos(KB,[entregar(Oi)|Resto],Lugares):-
+    obten_creencias(KB,Creencias),
+    filtra_por_atributo(Creencias,Oi,[Oi=>LugarOi|_]),
+    lugares_validos(KB,Resto,RestoLugares),
+    lugar_correcto_de_producto(KB,Oi,LugarCorrecto),
+    union([LugarCorrecto,mostrador,LugarOi],RestoLugares,Lugares),
+    !.
+
+lugares_validos(KB,[reacomodar(Oi)|Resto],Lugares):-
+    obten_creencias(KB,Creencias),
+    filtra_por_atributo(Creencias,Oi,[Oi=>LugarOi|_]),
+    lugares_validos(KB,Resto,RestoLugares),
+    lugar_correcto_de_producto(KB,Oi,LugarCorrecto),
+    union([LugarCorrecto,LugarOi],RestoLugares,Lugares),
+    !.
+
+lugares_validos(_,[],[]).
+
 /*
 * objetos_validos(Pendientes,Objetos)
-* regresa solo los lugares que creemos que nos interesan segun las metas
-* podemos solo ir a los lugares que debemos para reducir el branch factor
+* regresa solo los objetos que nos interesan segun los pendientes
+* solo buscaremso o agarraremos objetos que nos inteesan
 */
+objetos_validos([entregar(Oi)|Resto],Objetos):-
+    objetos_validos(Resto,RestoObjetos),
+    union([Oi],RestoObjetos,Objetos),
+    !.
+
+objetos_validos([reacomodar(Oi)|Resto],Objetos):-
+    objetos_validos(Resto,RestoObjetos),
+    union([Oi],RestoObjetos,Objetos),
+    !.
+
+objetos_validos([],[]).
 
 
 plan_suc(KB,node(Id,Padre,G,edo(mostrador,Izq,Der,Pend,Plan)),LastId,Sucesores):-
-	/*Movernos */ extension_de_clase(KB,estante,Estantes),
-	calcula_mover(mostrador,Estantes,Movimientos),
+	/*Movernos solo a los lugares validos excepto por donde estamos*/
+    lugares_validos(KB,Pend,Lugares),
+    delete(Lugares,mostrador,DestinosValidos_),
+    /*Ademas no queremos regresar a donde ya estuvimos*/
+    visitados(Plan,Visitados),
+    subtract(DestinosValidos_,Visitados,DestinosValidos),
+	calcula_mover(mostrador,DestinosValidos,Movimientos),
 	(
 		(/*Si el brazo izquierdo esta vacio no podemos entregar */
 			Izq=[],
@@ -93,19 +130,27 @@ plan_suc(KB,node(Id,Padre,G,edo(mostrador,Izq,Der,Pend,Plan)),LastId,Sucesores):
 			)
 		)
 	),
-	/*entregar*/
-	calcula_sucesores(KB,Acciones,node(Id,Padre,G,edo(mostrador,Izq,Der,Pend,Plan)),LastId,Sucesores),!.
+    /*Finalmente no tendría sentido repetir algo que ya pensabamos hacer*/
+    subtract(Acciones,Plan,AccionesNuevas),
+	calcula_sucesores(KB,AccionesNuevas,node(Id,Padre,G,edo(mostrador,Izq,Der,Pend,Plan)),LastId,Sucesores),
+    !.
 
 plan_suc(KB,node(Id,Padre,G,edo(Estante,Izq,Der,Pend,Plan)),LastId,Sucesores):-
 	dif(Estante,mostrador),
-	/*Movernos */ extension_de_clase(KB,estante,Estantes),
-	delete(Estantes,Estante,Estantes_validos),
-	calcula_mover(Estante,[mostrador|Estantes_validos],Movimientos),
+	/*Movernos solo a los lugares validos excepto por donde estamos*/
+    lugares_validos(KB,Pend,Lugares),
+    delete(Lugares,Estante,DestinosValidos_),
+    /*Ademas no queremos regresar a donde ya estuvimos*/
+    visitados(Plan,Visitados),
+    subtract(DestinosValidos_,Visitados,DestinosValidos),
+	calcula_mover(Estante,DestinosValidos,Movimientos),
 	obten_creencias(KB,Creencias),
 	filtra_por_valor(Creencias,Estante,Filtrados),
 	lista_de_atributos(Filtrados,Objetos),
+    objetos_validos(Pend,Validos),
+    intersection(Objetos,Validos,ObjetosValidos),
     /* Calculamos los objetos que podemos buscar y agarrar*/
-	calcula_ba(Objetos,Ba),
+	calcula_ba(ObjetosValidos,Ba),
     (
 		(
 			Izq=[],
@@ -146,7 +191,9 @@ plan_suc(KB,node(Id,Padre,G,edo(Estante,Izq,Der,Pend,Plan)),LastId,Sucesores):-
 			)
 		)
 	),
-	calcula_sucesores(KB,Acciones,node(Id,Padre,G,edo(Estante,Izq,Der,Pend,Plan)),LastId,Sucesores),
+    /*Finalmente no tendría sentido repetir algo que ya pensabamos hacer*/
+    subtract(Acciones,Plan,AccionesNuevas),
+	calcula_sucesores(KB,AccionesNuevas,node(Id,Padre,G,edo(Estante,Izq,Der,Pend,Plan)),LastId,Sucesores),
     !.
 
 /* Calcula la secuencia de movientos posibles dado un origen y una lista de destinos */
@@ -159,9 +206,25 @@ calcula_ba([Objeto|Resto],[ba(Objeto)|Ba_resto]):-
 	calcula_ba(Resto,Ba_resto),!.
 calcula_ba([],[]).
 
+/*
+* visitados(Plan,Lugares)
+* Calcula los lugares visitados basado en el plan
+*/
+visitados([mover(_,Lj)|Resto],Lugares):-
+    visitados(Resto,RestoLugares),
+    union([Lj],RestoLugares,Lugares),
+    !.
+
+visitados([Accion|Resto],Lugares):-
+    dif(Accion,mover(_,_)),
+    visitados(Resto,Lugares),
+    !.
+
+visitados([],[]).
+
 calcula_sucesores(KB,[Accion|Acciones],node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan)),LastId,
 		[Key=>node(Nuevo_Id,Id,Nueva_G,edo(Nueva_pos,Nuevo_izq,Nuevo_der,Nuevos_pend,Nuevo_plan))|Sucesores]):-
-	%write(node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan))),nl,
+	%nl,write(node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan))),nl,
 	%write(Accion),nl,
 	(
 		(
@@ -232,7 +295,7 @@ calcula_sucesores(KB,[Accion|Acciones],node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan)),L
 	/* Checar si es necesario el + 1 */
 	Nuevo_Id is LastId + 1,
 	Nueva_G is G + C,
-	Key is G + C + 1,
+	Key is G + C + 0.1,
 	calcula_sucesores(
 		KB,
 		Acciones,

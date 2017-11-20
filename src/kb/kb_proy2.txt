@@ -12,7 +12,7 @@
         /* La posición actual de golem en los diferentes lugares*/
         pos=>mostrador,
         /* La lista de objeto=>lugar en donde golem cree que estan los objetos */
-        cree=>val([coca=>drink_shelf,heineken=>drink_shelf,noodles=>food_shelf,noodles=>food_shelf,bisquits=>bread_shelf]),
+        cree=>val([coca=>drink_shelf,heineken=>drink_shelf,noodles=>food_shelf,bisquits=>bread_shelf]),
         /* La lista de objeto=>lugar ya observados */
         obs=>val([]),
         /* Los objetos que ha movido el robot se deben distinguir en el diagnóstico
@@ -64,5 +64,5 @@
     /* PROBABILIDADES */
     objeto(p,top,[p=>val([mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9,agarrar(Oi)=>0.9])],[]),
     /* COSTOS */
-    objeto(c,top,[c=>val([mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1,agarrar(Oi)=>1])],[])
+    objeto(c,top,[c=>val([mover(Li,Lj)=>1,buscar(Oi)=>0.25,colocar(Oi)=>0.5,agarrar(Oi)=>0.5])],[])
 ]

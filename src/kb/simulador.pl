@@ -87,28 +87,17 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
     subtract(Obs,ABorrar,Obs2),
     /* Construimos observaciones */
     construye_observaciones(Contenido,Pos,NObs),
-    /* Buscar los objetos que no son alcanzables e imprime un mensaje. */
-    extension_de_propiedad_(KB, alcanzable, Objs),
-    filtra_por_valor(Objs, no, NoAlcanzables),
-    lista_de_atributos(NoAlcanzables, ObjsNoAlcanzables),
-    nl, write('Los siguientes objetos no se pueden alcanzar: '), nl,
-    imprime(ObjsNoAlcanzables), nl,
     /* Agregamos las observaciones*/
     append(NObs,Obs2,NuevasObservaciones),
     modifica_propiedad_de_objeto(KB,obs=>val(NuevasObservaciones),golem,KB2),
     /* Necesiamos saber si hay objetos que se deben reacomodar*/
     lista_de_objetos_a_reacomodar(KB2,Contenido,Pos,AReac),
-    /* Silo en caso de que el objeto que buscamos está en lo que vimos y que no hay nada fuera de lugar estamos bien*/
+    /* Silo en caso de que el objeto que buscamos está en lo que vimos estamos bien*/
     ((member(Oi,Contenido),Ok=1);Ok=0),
     /*Obtenemos la lista de tareas pendientes */
     propiedades_de_objeto(KB2,golem,Props),
     filtra_por_atributo(Props,pendientes,[_=>val(Pends)]),
-    /* Elimina los objetos inalcanzables de las listas de acciones de pendientes. */
-    union(Pends,AReac,NPendientes),
-    findall(Pend,
-            ((member(entregar(P), NPendientes), not(member(P, ObjsNoAlcanzables)), Pend = entregar(P));
-             (member(reacomodar(P), NPendientes), not(member(P, ObjsNoAlcanzables)), Pend = reacomodar(P))),
-            NuevosPendientes),
+    union(Pends,AReac,NuevosPendientes),
     /* Actualizamos la lista de pendientes*/
     modifica_propiedad_de_objeto(KB2,pendientes=>val(NuevosPendientes),golem,NuevaKB_),
     /* Lo marcamos como observado*/
@@ -126,6 +115,7 @@ simula_accion(KB,agarrar(Oi),1,NuevaKB):-
             filtra_por_atributo(Ext,izq,[]),
             agrega_relacion_a_objeto(KB,tiene=>Oi,izq,KB2),
             elimina_relacion_de_objeto(KB2,tiene=>Oi,Pos,NuevaKB),
+            /*Falta modificar la creencia de que esta donde estaba antes*/
             !
         );
         (/* Brazo derecho libre*/
@@ -133,6 +123,7 @@ simula_accion(KB,agarrar(Oi),1,NuevaKB):-
             filtra_por_atributo(Ext,der,[]),
             agrega_relacion_a_objeto(KB,tiene=>Oi,der,KB2),
             elimina_relacion_de_objeto(KB2,tiene=>Oi,Pos,NuevaKB)
+            /*Falta modificar la creencia de que esta donde estaba antes*/
         )
     ),
     !.
@@ -214,3 +205,17 @@ construye_observaciones([Obj|Resto],Pos,[Obj=>Pos|RestoObs]):-
     !.
 
 construye_observaciones([],_,[]).
+
+
+/*
+* elimina_pendientes_con_objetos(Pendientes,Objetos,NuevosPendentes)
+* Elimina las acciones pendientes que involucaran los objetos en la lista Objetos
+*/
+
+elimina_pendientes_con_objetos(Pendientes,[Objeto|Resto],NuevosPendentes):-
+    delete(Pendientes,entregar(Objeto),Pendientes2),
+    delete(Pendientes2,reacomodar(Objeto),Pendientes3),
+    elimina_pendientes_con_objetos(Pendientes3,Resto,NuevosPendentes),
+    !.
+
+elimina_pendientes_con_objetos(Pendientes,[],Pendientes).
