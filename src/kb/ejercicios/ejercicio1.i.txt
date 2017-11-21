@@ -20,7 +20,8 @@
          */
         movidos=>val([]),
         /* Acciones pendientes entregar(Oi),reacomodar(Oi)*/ /* entregar(coca), entregar(kellogs), entregar(maruchan), reacomodar(noodles), reacomodar(bisquits),*/
-        pendientes=>val([entregar(coca)])
+        pendientes=>val([entregar(coca)]),
+        inalcanzable=>val([])
     ],[]),
     /* Aqui definimos clases y objetos con caracteristicas
      * Creamos una superclase por estante y como subclases una por cada tipo de producto que se acomode en el estante,
@@ -30,9 +31,9 @@
     clase(producto,top,[],[],[]),
     clase(bebida,producto,[],[loc=>drink_shelf],[]),
     clase(refresco,bebida,[],[],[coca]),
-    objeto(coca,refresco,[],[]),
+    objeto(coca,refresco,[not(alcanzable)],[]),
     clase(cerveza,bebida,[],[],[heineken]),
-    objeto(heineken,cerveza,[],[]),
+    objeto(heineken,cerveza,[not(alcanzable)],[]),
     /* LA COMIDA */
     clase(food,producto,[],[loc=>food_shelf],[]),
     clase(cereal,food,[],[],[kellogs]),
@@ -42,7 +43,7 @@
     /* EL PAN */
     clase(bread,producto,[],[loc=>bread_shelf],[]),
     clase(galletas,bread,[],[],[bisquits]),
-    objeto(bisquits,galletas,[],[]),
+    objeto(bisquits,galletas,[not(alcanzable)],[]),
     /* POSICIONES */
     clase(lugar,top,[],[],[mostrador,inalcanzable]),
     /* El objeto mostrador*/
