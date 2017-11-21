@@ -10,7 +10,7 @@ simulador(KB):-
     decision(KB2,Decisiones),
     planeacion(KB2,Decisiones,Plan),
     ((not(es_vacia(Diagnostico)),
-      write('Mi diagnostico a cerca de las acciones del asistente son:'),nl,
+      write('Mi diagnostico acerca de las acciones del asistente son:'),nl,
       imprime(Diagnostico),nl);
      (write('No tengo información suficiente para realizar un diagnóstico.'),nl)),
     ((not(es_vacia(Decisiones)),
