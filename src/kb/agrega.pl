@@ -103,7 +103,7 @@ agrega_relacion_a_clase(KB, not(Rel=>Val), Clase, NuevaKB) :-
 agrega_relacion_a_clase(KB, not(Rel=>Val), Clase, NuevaKB) :-
     obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
     not(tiene_relacion_nombre(not(Rel), Rels)),
-    agrega_elemento_a_lista(not(Rel=>Val), Rels, NRels),
+    agrega_elemento_a_lista(not(Rel=>[Val]), Rels, NRels),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, Props, NRels, Objs),
               NuevaKB), !.
@@ -120,7 +120,7 @@ agrega_relacion_a_clase(KB, Rel=>Val, Clase, NuevaKB) :-
 agrega_relacion_a_clase(KB, Rel=>Val, Clase, NuevaKB) :-
     obten_clase(KB, Clase, clase(Clase, SuperClase, Props, Rels, Objs)),
     not(tiene_relacion_nombre(Rel, Rels)),
-    agrega_elemento_a_lista(Rel=>Val, Rels, NRels),
+    agrega_elemento_a_lista(Rel=>[Val], Rels, NRels),
     reemplaza(KB, clase(Clase, SuperClase, Props, Rels, Objs),
               clase(Clase, SuperClase, Props, NRels, Objs),
               NuevaKB), !.
@@ -150,7 +150,7 @@ agrega_relacion_a_objeto(KB, not(Rel=>Val), Objeto, NuevaKB) :-
 agrega_relacion_a_objeto(KB, not(Rel=>Val), Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     not(tiene_relacion_nombre(not(Rel), Rels)),
-    agrega_elemento_a_lista(not(Rel=>Val), Rels, NRels),
+    agrega_elemento_a_lista(not(Rel=>[Val]), Rels, NRels),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, Props, NRels),
               NuevaKB),!.
@@ -167,7 +167,7 @@ agrega_relacion_a_objeto(KB, Rel=>Val, Objeto, NuevaKB) :-
 agrega_relacion_a_objeto(KB, Rel=>Val, Objeto, NuevaKB) :-
     obten_objeto(KB, Objeto, objeto(Objeto, Clase, Props, Rels)),
     not(tiene_relacion_nombre(Rel, Rels)),
-    agrega_elemento_a_lista(Rel=>Val, Rels, NRels),
+    agrega_elemento_a_lista(Rel=>[Val], Rels, NRels),
     reemplaza(KB, objeto(Objeto, Clase, Props, Rels),
               objeto(Objeto, Clase, Props, NRels),
               NuevaKB),!.

@@ -46,24 +46,6 @@ primera(not(X), [not(X)|_], not(X)) :- !.
 primera(X, [Y|Tail], Z):-dif(X, Y),dif(not(X), Y),dif(X, not(Y)),primera(X, Tail, Z).
 
 /*
- * reemplaza(Lista,Actual,Nuevo,NuevaLista)
- *
- * Reemplazar todas las apariciones de Actual por Nuevo en Lista da
- * como resultado NuevaLista
- */
-
-/*
-* primera(X,Lista,Y)
-* Si la primera aparición de X en Lista es X entonces Y = X
-* Si la primera aparición de X en Lista es not(X) entonces Y = not(X)
-*/
-primera(X,[X|_],X):-!.
-primera(X,[not(X)|_],not(X)):-!.
-primera(not(X),[X|_],X):-!.
-primera(not(X),[not(X)|_],not(X)):-!.
-primera(X,[Y|Tail],Z):-dif(X,Y),dif(not(X),Y),dif(X,not(Y)),primera(X,Tail,Z).
-
-/*
 * reemplaza(Lista,Actual,Nuevo,NuevaLista)
 * Reemplazar todas las apariciones de Actual por Nuevo en Lista da como resultado NuevaLista
 */
@@ -309,3 +291,219 @@ clasifica([Atr|Restantes],PositivasEncontradas,NegativasEncontradas,Positivas,Ne
     !.
 clasifica([_|Restantes],PositivasEncontradas,NegativasEncontradas,Positivas,Negativas):-
     clasifica(Restantes,PositivasEncontradas,NegativasEncontradas,Positivas,Negativas).
+
+/*
+* Estructura para cola de prioridad en una lista
+* Agregar en PQ a key=>Value da como resultado NPQ
+* agrega_pq(PQ,key=>Value,NPQ)
+* Eliminar el valor Val de PQ da NPQ
+* elimina_pq(PQ,Val,NPQ)
+* Modficar la llave del valor Val por Key en PQ da NPQ,
+* Si no existe se agrega.
+* cambia_key_pq(PQ,Key=>Val,NPQ)
+*/
+
+agrega_pq([],Key=>Val,[Key=>Val]):-
+    !.
+
+agrega_pq([Lower=>Value|RPQ],Key=>Val,[Key=>Val|[Lower=>Value|RPQ]]):-
+    Key<Lower,
+    !.
+
+agrega_pq([Lower=>Value|RPQ],Key=>Val,[Lower=>Value|NRPQ]):-
+    agrega_pq(RPQ,Key=>Val,NRPQ),
+    !.
+/*Agrega una lista de llave=>valor a PQ resultando NPQ*/
+agrega_pq_muchos(Pq,[Primero|Resto],NPQ):-
+    agrega_pq(Pq,Primero,Pq2),
+    agrega_pq_muchos(Pq2,Resto,NPQ),!.
+
+agrega_pq_muchos(Pq,[],Pq).
+
+/* Elimina de PQ la aparición de Val*/
+elimina_pq(PQ,Val,NPQ):-
+    delete(PQ,_=>Val,NPQ).
+
+cambia_key_pq(PQ,Key=>Val,NPQ):-
+    elimina_pq(PQ,Val,NPQ1),
+    agrega_pq(NPQ1,Key=>Val,NPQ).
+
+/*
+* Convierte una lista de Atr=>Valor a una lista de solamente los atributos
+* Ejemplo lista_de_atributos([a1=>v1,a2=>v2,...,an=>vn],[a1,a2,...,an])
+*/
+lista_de_atributos([Atr=>_|Resto],[Atr|AtrResto]):-
+    lista_de_atributos(Resto,AtrResto).
+
+lista_de_atributos([],[]).
+
+/*
+* Convierte una lista de Atr=>Valor a una lista de solamente los atributos
+* Ejemplo lista_de_atributos([a1=>v1,a2=>v2,...,an=>vn],[v1,v2,...,vn])
+*/
+lista_de_valores(Lista,Valores):-
+    voltea_av(Lista,Volteada),
+    lista_de_atributos(Volteada,Valores),
+    !.
+
+/*
+* voltea_av(Lista,ListaVolteada)
+* Voltea atr=>val por val=>atr
+*/
+voltea_av([Atr=>Val|Resto],[Val=>Atr|VolteaResto]):-
+    voltea_av(Resto,VolteaResto),!.
+voltea_av([],[]).
+
+/*
+ * filtra_por_valores(ListaIdValor,Valor,ListaIdValorFiltrado)
+ * ListaIdValorFiltrado esta formada por los elementos de ListaIdValor que tienen el valor especificado
+ */
+
+filtra_por_valor([],_,[]):-!.
+
+filtra_por_valor([Atr=>Vals|Resto],Valor,[Atr=>Vals|RestoFiltrado]):-
+    ((is_list(Vals),member(Valor,Vals));(Vals = Valor)),
+    filtra_por_valor(Resto,Valor,RestoFiltrado),
+    !.
+
+filtra_por_valor([_|Resto],Valor,RestoFiltrado):-
+    filtra_por_valor(Resto,Valor,RestoFiltrado).
+
+/*
+ * filtra_por_valores(ListaIdValor,Valor,ListaIdValorFiltrado)
+ * ListaIdValorFiltrado esta formada por los elementos de ListaIdValor que tienen el valor especificado
+ */
+
+filtra_por_atributo([],_,[]):-!.
+
+filtra_por_atributo([Atr=>Vals|Resto],Atr,[Atr=>Vals|RestoFiltrado]):-
+    filtra_por_atributo(Resto,Atr,RestoFiltrado),
+    !.
+
+filtra_por_atributo([Atr2=>_|Resto],Atr,RestoFiltrado):-
+    dif(Atr2,Atr),
+    filtra_por_atributo(Resto,Atr,RestoFiltrado).
+
+/*
+* Filtra por valores
+* filtra_por_valores(Lista,Valores,Filtrada)
+*/
+filtra_por_valores(Lista,[Valor|Resto],Filtrada):-
+    filtra_por_valor(Lista,Valor,FiltradaPorValor),
+    filtra_por_valores(Lista,Resto,FiltradaPorResto),
+    append(FiltradaPorValor,FiltradaPorResto,Filtrada).
+
+filtra_por_valores(_,[],[]).
+
+/*
+* Filtra por valores
+* filtra_por_valores(Lista,Valores,Filtrada)
+*/
+filtra_por_atributos(Lista,[Atr|Resto],Filtrada):-
+    filtra_por_atributo(Lista,Atr,FiltradaPorAtr),
+    filtra_por_atributos(Lista,Resto,FiltradaPorResto),
+    append(FiltradaPorAtr,FiltradaPorResto,Filtrada).
+
+filtra_por_atributos(_,[],[]).
+
+/*
+* Obtiene los estantes pobservados
+*/
+obten_estantes_observados(KB,EstantesObservados):-
+    extension_de_clase(KB,estante,Estantes),
+    extension_de_propiedad_(KB,observado,Ext),
+    filtra_por_valor(Ext,si,Observados_),
+    lista_de_atributos(Observados_,Observados),
+    intersection(Estantes,Observados,EstantesObservados).
+
+
+/*
+* Obtiene los estantes que no se han escaneado()
+* TODO Modificar para tomar en cuanta la propiedad observado o not(observado)
+*/
+obten_estantes_no_observados(KB,EstantesNoObservados):-
+    /* Obtenemos todos los estantes*/
+    extension_de_clase(KB,estante,Todos),
+    /*Obtenemos todos los estantes observados*/
+    obten_estantes_observados(KB,EstantesObservados),
+    /* Verificamos que todos ya se hayan visitado*/
+    subtract(Todos,EstantesObservados,EstantesNoObservados).
+
+/*
+* Obtiene las creencias del robot que hay en la KB
+*/
+obten_creencias(KB,Creencias):-
+    extension_de_propiedad_(KB,cree,Ext),
+    lista_de_valores(Ext,[val(Creencias)]).
+
+/*
+* Obtiene las observaciones del robot que hay en la KB
+*/
+obten_observaciones(KB,Observaciones):-
+    extension_de_propiedad_(KB,obs,Ext),
+    lista_de_valores(Ext,[val(Observaciones)]).
+
+
+/*
+* Obtiene los objetos movidos por el robot.
+*/
+obten_movidos(KB,Movidos):-
+    extension_de_propiedad_(KB,movidos,Ext),
+    lista_de_valores(Ext,[val(Movidos)]).
+
+/*Obtiene el costo de una accion dada*/
+obten_costo(KB,ba(Oi),C):-
+    obten_costo(KB,buscar(Oi),C1),
+    obten_costo(KB,agarrar(Oi),C2),
+    C is C1 + C2,
+    !.
+
+obten_costo(KB,Accion,C):-
+    propiedades_de_objeto(KB,c,[_=>val(Costos)]),
+    primera(Accion=>_,Costos,Accion=>C).
+
+/*Obtiene la probabilidad de una accion dada*/
+obten_probabilidad(KB,Accion,P):-
+    propiedades_de_objeto(KB,p,[_=>val(Probs)]),
+    primera(Accion=>_,Probs,Accion=>P).
+
+/*Obtine la recompensa de una acción dada*/
+obten_recompensa(KB,Accion,R):-
+    propiedades_de_objeto(KB,r,[_=>val(Recs)]),
+    primera(Accion=>_,Recs,Accion=>R).
+
+/* Obtiene el lugar correcto de un producto */
+lugar_correcto_de_producto(KB,Producto,Lugar):-
+    obten_objeto(KB,Producto,objeto(Producto, Clase, _, _)),
+    relaciones_de_clase(KB,Clase,Props),
+    filtra_por_atributo(Props,loc,[loc=>Lugar]).
+
+/* Obtiene la posición del robot */
+obten_posicion(KB,Pos):-
+    propiedades_de_objeto(KB,golem,Props),
+    filtra_por_atributo(Props,pos,[pos=>Pos]).
+
+/* Obtiene las acciones pendientes del robot */
+obten_acciones_pendientes(KB,Pendientes):-
+    extension_de_propiedad_(KB,pendientes,[_=>val(Pendientes)]).
+
+/*Cargando izquierdo*/
+cargando_izq(KB,Carga):-
+    ((relaciones_de_objeto(KB,izq,[tiene=>Carga]),!);
+    Carga=[]).
+
+/*Cargando derecho*/
+cargando_der(KB,Carga):-
+    ((relaciones_de_objeto(KB,der,[tiene=>Carga]),!);
+    Carga=[]).
+
+/*
+ * Verifica si una lista es vacía.
+ */
+es_vacia(Lista) :- Lista = [].
+
+/*
+* Obtiene los objetos que golem sabe son inalcanzables
+*/
+obten_inalcanzables(KB,Inalcanzables):-
+    extension_de_propiedad_(KB,inalcanzables,[_=>val(Inalcanzables)]).
