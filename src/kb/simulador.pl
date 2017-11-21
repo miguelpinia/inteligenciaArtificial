@@ -33,18 +33,17 @@ simulador(KB):-
 simula_plan(KB,[Accion|Resto],Ok,NuevaKB):-
     write('Accion: '),write(Accion),nl,
     simula_accion(KB,Accion,AOk,KB2),
+    %imprime(KB2),nl,
     (
         (
             AOk=1,
             nl,write('Exito'),nl,
-            %imprime(KB2),nl,
             simula_plan(KB2,Resto,Ok,NuevaKB),
             !
         );
         (
             Ok=0,
             nl,write('Falla'),nl,nl,
-            %imprime(KB2),nl,
             NuevaKB = KB2
         )
     ),
@@ -106,7 +105,12 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
     append(NObs,Obs2,NuevasObservaciones),
     modifica_propiedad_de_objeto(KB,obs=>val(NuevasObservaciones),golem,KB2),
     /* Necesiamos saber si hay objetos que se deben reacomodar*/
-    lista_de_objetos_a_reacomodar(KB2,Contenido,Pos,AReac_),
+    obten_acciones_pendientes(KB,PendientesPrevios),
+    objetos_validos(PendientesPrevios,ObjetosPrevios),
+    /*Quitamos del contenido los que ya estan en alguna meta */
+    subtract(Contenido,ObjetosPrevios,SubContenido),
+    lista_de_objetos_a_reacomodar(KB2,SubContenido,Pos,AReac_),
+
     %/* Silo en caso de que el objeto que buscamos está en lo que vimos estamos bien*/
     %((member(Oi,Contenido),Ok=1);Ok=0),
     /* Buscar los objetos que no son alcanzables e imprime un mensaje. */
@@ -167,7 +171,7 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
             /* Calculo loq ue vi menos lo que ya hay */
             subtract(AReac,Pends,NAReac),
             dif(NAReac,[]),
-            nl,write('Debo reacomodar:'),nl,
+            nl,write('Debo agregar a mis pendientes:'),nl,
             imprime(NAReac),nl,
             !
         );
