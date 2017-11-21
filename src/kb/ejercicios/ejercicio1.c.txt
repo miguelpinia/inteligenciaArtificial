@@ -12,7 +12,7 @@
         /* La posición actual de golem en los diferentes lugares*/
         pos=>mostrador,
         /* La lista de objeto=>lugar en donde golem cree que estan los objetos */
-        cree=>val([coca=>drink_shelf,heineken=>drink_shelf,noodles=>food_shelf,bisquits=>bread_shelf]),
+        cree=>val([coca=>drink_shelf,heineken=>drink_shelf,noodles=>food_shelf,bisquits=>bread_shelf,kellogs=>food_shelf]),
         /* La lista de objeto=>lugar ya observados */
         obs=>val([]),
         /* Los objetos que ha movido el robot se deben distinguir en el diagnóstico
