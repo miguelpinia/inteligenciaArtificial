@@ -20,7 +20,11 @@
          */
         movidos=>val([]),
         /* Acciones pendientes entregar(Oi),reacomodar(Oi)*/ /* entregar(coca), entregar(kellogs), entregar(maruchan), reacomodar(noodles), reacomodar(bisquits),*/
-        pendientes=>val([entregar(coca)])
+        pendientes=>val([entregar(coca)]),
+        /* Aqui guardaremos la primera observación de los objetos */
+        primera_observacion=>val([]),
+        /**/
+        objetos_en_reporte=>val([coca,heineken,noodles,bisquits])
     ],[]),
     /* Aqui definimos clases y objetos con caracteristicas
      * Creamos una superclase por estante y como subclases una por cada tipo de producto que se acomode en el estante,
@@ -62,7 +66,7 @@
     /* RECOMPENSAS */
     objeto(r,top,[r=>val([mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1,agarrar(Oi)=>1])],[]),
     /* PROBABILIDADES */
-    objeto(p,top,[p=>val([mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9,agarrar(Oi)=>0.9])],[]),
+    objeto(p,top,[p=>val([buscar(coca)=>0.6,mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9,agarrar(Oi)=>0.9])],[]),
     /* COSTOS */
     objeto(c,top,[c=>val([mover(Li,Lj)=>1,buscar(Oi)=>0.25,colocar(Oi)=>0.5,agarrar(Oi)=>0.5])],[])
 ]
