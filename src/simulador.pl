@@ -197,16 +197,19 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB,_):-
         (
             /* Calculo loq ue vi menos lo que ya hay */
             subtract(AReac,Pends,NAReac),
-            dif(NAReac,[]),
+            obten_productos_marcados(KB3,Marcados),
+            subtract(NAReac,Marcados,NAReac2),
+            dif(NAReac2,[]),
             nl,write('Debo agregar a mis pendientes:'),nl,
-            imprime(NAReac),nl,
+            imprime(NAReac2),nl,
             !
         );
         (
-            true
+            NAReac2= []
         )
     ),
-    union(Pends,AReac,NuevosPendientes),
+    append(Pends,NAReac2,NuevosPendientes_),
+    list_to_set(NuevosPendientes_,NuevosPendientes),
     /* Actualizamos la lista de pendientes*/
     modifica_propiedad_de_objeto(KB3,pendientes=>val(NuevosPendientes),golem,NuevaKB_),
     /* Lo marcamos como observado*/
