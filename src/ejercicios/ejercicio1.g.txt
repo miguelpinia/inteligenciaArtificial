@@ -58,7 +58,7 @@
     objeto(der,brazo,[],[]),
     /* LOS ESTANTES DE LA TIENDA*/
     clase(estante,lugar,[not(observado)],[],[drink_shelf,food_shelf,bread_shelf]),
-    objeto(drink_shelf,estante,[],[tiene=>[bisquits,kellogs]]),
+    objeto(drink_shelf,estante,[],[tiene=>[bisquits,noodles]]),
     objeto(food_shelf,estante,[],[tiene=>[]]),
     objeto(bread_shelf,estante,[],[tiene=>[]]),
 
