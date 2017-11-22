@@ -115,7 +115,18 @@ plan_suc(KB,node(Id,Padre,G,edo(mostrador,Izq,Der,Pend,Plan)),LastId,Sucesores):
     /*Ademas no queremos regresar a donde ya estuvimos*/
     visitados(Plan,Visitados),
     subtract(DestinosValidos_,Visitados,DestinosValidos),
-	calcula_mover(mostrador,DestinosValidos,Movimientos),
+    calcula_mover(mostrador,DestinosValidos,Movimientos),
+    /* Si el ultimo del plan es mover no queremos movernos mas
+    (
+        (
+            last(Plan,mover(_,_)),
+            Movimientos = [],
+            !
+        );
+        (
+            calcula_mover(mostrador,DestinosValidos,Movimientos)
+        )
+    ),*/
 	(
 		(/*Si el brazo izquierdo esta vacio no podemos entregar */
 			Izq=[],
@@ -160,6 +171,17 @@ plan_suc(KB,node(Id,Padre,G,edo(Estante,Izq,Der,Pend,Plan)),LastId,Sucesores):-
     visitados(Plan,Visitados),
     subtract(DestinosValidos_,Visitados,DestinosValidos),
 	calcula_mover(Estante,DestinosValidos,Movimientos),
+    /* Si el ultimo del plan es mover no queremos movernos mas
+    (
+        (
+            last(Plan,mover(_,_)),
+            Movimientos = [],
+            !
+        );
+        (
+            calcula_mover(mostrador,DestinosValidos,Movimientos)
+        )
+    ),*/
 	obten_creencias(KB,Creencias),
 	filtra_por_valor(Creencias,Estante,Filtrados),
 	lista_de_atributos(Filtrados,Objetos),
@@ -308,10 +330,12 @@ calcula_sucesores(KB,[Accion|Acciones],node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan)),L
     %write(Accion),nl,
     %write(Nuevo_plan),nl,nl,
 	obten_costo(KB,Accion,C),
+    obten_probabilidad(KB,Accion,P),
 	/* Checar si es necesario el + 1 */
 	Nuevo_Id is LastId + 1,
 	Nueva_G is G + C,
-	Key is G + C + 0.1,
+    length(Pend,L),
+	Key is Nueva_G * L / P,
 	calcula_sucesores(
 		KB,
 		Acciones,
