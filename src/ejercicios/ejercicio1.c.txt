@@ -69,5 +69,5 @@
     /* PROBABILIDADES */
     objeto(p,top,[p=>val([mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9,agarrar(Oi)=>0.9])],[]),
     /* COSTOS */
-    objeto(c,top,[c=>val([mover(mostrador,Li)=>1,mover(Li,Lj)=>1.73205807,buscar(Oi)=>0.25,colocar(Oi)=>0.5,agarrar(Oi)=>0.5])],[])
+    objeto(c,top,[c=>val([mover(mostrador,Li)=>1,mover(Li,mostrador)=>1,mover(Li,Lj)=>1.73205807,buscar(Oi)=>0.25,colocar(Oi)=>0.5,agarrar(Oi)=>0.5])],[])
 ]
