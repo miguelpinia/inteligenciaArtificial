@@ -260,8 +260,8 @@ visitados([Accion|Resto],Lugares):-
 
 visitados([],[]).
 
-calcula_sucesores(KB,[Accion|Acciones],node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan)),LastId,
-		[Key=>node(Nuevo_Id,Id,Nueva_G,edo(Nueva_pos,Nuevo_izq,Nuevo_der,Nuevos_pend,Nuevo_plan))|Sucesores]):-
+calcula_sucesores(KB,[Accion|Acciones],node(Id,IdPadre,H,edo(Pos,Izq,Der,Pend,Plan)),LastId,
+		[Key=>node(Nuevo_Id,Id,Key,edo(Nueva_pos,Nuevo_izq,Nuevo_der,Nuevos_pend,Nuevo_plan))|Sucesores]):-
 	%nl,write(node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan))),nl,
 	%write(Accion),nl,
 	(
@@ -329,18 +329,15 @@ calcula_sucesores(KB,[Accion|Acciones],node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan)),L
 	append(Plan,[Accion],Nuevo_plan),
     %write(Accion),nl,
     %write(Nuevo_plan),nl,nl,
-	obten_costo(KB,Accion,C),
-    obten_probabilidad(KB,Accion,P),
-	/* Checar si es necesario el + 1 */
 	Nuevo_Id is LastId + 1,
-	Nueva_G is G + C,
+	calcula_costo_de_plan(KB,Nuevo_plan,CostoTotal),
+    calcula_probabilidad_de_plan(KB,Nuevo_plan,ProbabilidadTolal),
     length(Pend,L),
-	Key is Nueva_G * L / P,
+	Key is CostoTotal * L / ProbabilidadTolal,
 	calcula_sucesores(
 		KB,
 		Acciones,
-		%node(Nuevo_Id,Id,Nueva_G,edo(Nueva_pos,Nuevo_izq,Nuevo_der,Nuevos_pend,Nuevo_plan)),
-		node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan)),
+		node(Id,IdPadre,H,edo(Pos,Izq,Der,Pend,Plan)),
 		Nuevo_Id,
 		Sucesores),
 	!.

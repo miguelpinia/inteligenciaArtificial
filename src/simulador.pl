@@ -10,11 +10,11 @@ simulador(KB):-
     decision(KB2,Decisiones),
     planeacion(KB2,Decisiones,Plan),
     ((not(es_vacia(Diagnostico)),
-      write('Mi diagnostico acerca de las acciones del asistente son:'),nl,
+      write('Mi diagnóstico acerca de las acciones del asistente son:'),nl,
       imprime(Diagnostico),nl);
      (write('No tengo información suficiente para realizar un diagnóstico.'),nl)),
     ((not(es_vacia(Decisiones)),
-      write('Mi decision es:'),nl,
+      write('Mi decisión es:'),nl,
       imprime(Decisiones),nl,
       write('Mi plan es:'),nl,
       imprime(Plan),nl);
@@ -179,7 +179,15 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
         );
         (KB3=KB2,
         /* Solo en caso de que el objeto que buscamos está en lo que vimos estamos bien*/
-        ((member(Oi,Contenido),Ok=1);Ok=0))
+        (
+            (
+                member(Oi,Contenido),
+                Ok=1
+            );
+                Ok=0,
+                nl,write('No ví: '),write(Oi),nl
+            )
+        )
     ),
     /*Obtenemos la lista de tareas pendientes */
     propiedades_de_objeto(KB3,golem,Props),
