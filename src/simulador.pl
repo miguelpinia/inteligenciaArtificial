@@ -98,21 +98,40 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
     ((relaciones_de_objeto(KB,Pos,Rels),filtra_por_atributo(Rels,tiene,[tiene=>Contenido]),!);Contenido=[]),
     /* Borramos cualquier observación anterior de los objetos contenidos */
     filtra_por_atributos(Obs,Contenido,ABorrar),
+    /* Aviso si hay go que no sabía*/
+    obtiene_objetos_en_reporte(KB,ObjetosEnReporte),
+    subtract(Contenido,ObjetosEnReporte,NoConocodos),
+    (
+        (/* Hy algun nuevo objeto que no conocía?*/
+            dif(NoConocodos,[]),
+            /* Proceso los que no he marcado solamente */
+            obten_productos_marcados(KB,Marcados),
+            /* borro los que ya marqué, ya debí haberlos reportado*/
+            subtract(NoConocodos,Marcados,NuevosDesconocidos),
+            dif(NuevosDesconocidos,[]),
+            /* Reporto */
+            nl,write('Me dí cuenta que también hay:'),nl,
+            imprime(NuevosDesconocidos),nl,
+            !
+        );
+        (/* Si no no hago nada */
+            true
+        )
+    ),
+    /* Registramos los objetos vistos por primera vez*/
+    marca_productos(KB,Contenido,Pos,KB1),
     subtract(Obs,ABorrar,Obs2),
     /* Construimos observaciones */
     construye_observaciones(Contenido,Pos,NObs),
     /* Agregamos las observaciones*/
     append(NObs,Obs2,NuevasObservaciones),
-    modifica_propiedad_de_objeto(KB,obs=>val(NuevasObservaciones),golem,KB2),
+    modifica_propiedad_de_objeto(KB1,obs=>val(NuevasObservaciones),golem,KB2),
     /* Necesiamos saber si hay objetos que se deben reacomodar*/
     obten_acciones_pendientes(KB,PendientesPrevios),
     objetos_validos(PendientesPrevios,ObjetosPrevios),
     /*Quitamos del contenido los que ya estan en alguna meta */
     subtract(Contenido,ObjetosPrevios,SubContenido),
     lista_de_objetos_a_reacomodar(KB2,SubContenido,Pos,AReac_),
-
-    %/* Silo en caso de que el objeto que buscamos está en lo que vimos estamos bien*/
-    %((member(Oi,Contenido),Ok=1);Ok=0),
     /* Buscar los objetos que no son alcanzables e imprime un mensaje. */
     extension_de_propiedad_(KB2, alcanzable, Objs),
     filtra_por_valor(Objs, no, NoAlcanzables),
@@ -324,6 +343,28 @@ elimina_pendientes_con_objetos(Pendientes,[Objeto|Resto],NuevosPendentes):-
     !.
 
 elimina_pendientes_con_objetos(Pendientes,[],Pendientes).
+
+marca_productos(KB,[Producto|Resto],Pos,NuevaKB):-
+    propiedades_de_objeto(KB,Producto,Props),
+    (
+        (/* En caso de no estar marcado */
+            not(member(marcado,Props)),
+            /* Lo marco */
+            agrega_propiedad_a_objeto(KB,marcado,Producto,NKB1),
+            /* Agrego a la propiedad primera_observacion de golem */
+            obten_primera_observacion(NKB1,PrimeraObservacion),
+            modifica_propiedad_de_objeto(NKB1,primera_observacion=>val([Producto=>Pos|PrimeraObservacion]),golem,NKB2),
+            /* Marco los demás */
+            marca_productos(NKB2,Resto,Pos,NuevaKB),
+            !
+        );
+        (/* En caso de haber sido marcado nos seguimos */
+            marca_productos(KB,Resto,Pos,NuevaKB)
+        )
+    ),
+    !.
+
+marca_productos(KB,[],_,KB).
 
 /*
  * Establece los productos que debe estar en el estante que se está

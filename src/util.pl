@@ -452,6 +452,8 @@ obten_movidos(KB,Movidos):-
     lista_de_valores(Ext,[val(Movidos)]).
 
 /*Obtiene el costo de una accion dada*/
+
+/* Caso especial ba es la fusion de buscar y agarrar*/
 obten_costo(KB,ba(Oi),C):-
     obten_costo(KB,buscar(Oi),C1),
     obten_costo(KB,agarrar(Oi),C2),
@@ -463,11 +465,27 @@ obten_costo(KB,Accion,C):-
     primera(Accion=>_,Costos,Accion=>C).
 
 /*Obtiene la probabilidad de una accion dada*/
+
+/* Caso especial ba es la fusion de buscar y agarrar*/
+obten_probabilidad(KB,ba(Oi),P):-
+    obten_probabilidad(KB,buscar(Oi),P1),
+    obten_probabilidad(KB,agarrar(Oi),P2),
+    P is P1 * P2,
+    !.
+
 obten_probabilidad(KB,Accion,P):-
     propiedades_de_objeto(KB,p,[_=>val(Probs)]),
     primera(Accion=>_,Probs,Accion=>P).
 
 /*Obtine la recompensa de una acción dada*/
+
+/* Caso especial ba es la fusion de buscar y agarrar*/
+obten_recompensa(KB,ba(Oi),R):-
+    obten_recompensa(KB,buscar(Oi),R1),
+    obten_recompensa(KB,agarrar(Oi),R2),
+    R is R1 + R2,
+    !.
+
 obten_recompensa(KB,Accion,R):-
     propiedades_de_objeto(KB,r,[_=>val(Recs)]),
     primera(Accion=>_,Recs,Accion=>R).
@@ -507,3 +525,25 @@ es_vacia(Lista) :- Lista = [].
 */
 obten_inalcanzables(KB,Inalcanzables):-
     extension_de_propiedad_(KB,inalcanzables,[_=>val(Inalcanzables)]).
+
+/*
+* Obtiene la primera observacion de los objetos marcados
+*/
+obten_primera_observacion(KB,PrimeraObservacion):-
+    propiedades_de_objeto(KB,golem,Props),
+    filtra_por_atributo(Props,primera_observacion,[primera_observacion=>val(PrimeraObservacion)]).
+
+/*
+* Obtiene los objetos incluidos en el reporte
+*/
+obtiene_objetos_en_reporte(KB,Objetos):-
+    propiedades_de_objeto(KB,golem,Props),
+    filtra_por_atributo(Props,objetos_en_reporte,[_=>val(Objetos)]).
+
+/*
+* Obtiene los productos marcados
+*/
+obten_productos_marcados(KB,Marcados):-
+    extension_de_propiedad_(KB,marcado,Ext),
+    filtra_por_valor(Ext,si,Filtrados),
+    lista_de_atributos(Filtrados,Marcados).
