@@ -324,3 +324,77 @@ elimina_pendientes_con_objetos(Pendientes,[Objeto|Resto],NuevosPendentes):-
     !.
 
 elimina_pendientes_con_objetos(Pendientes,[],Pendientes).
+
+/*
+ * Establece los productos que debe estar en el estante que se está
+ * observando, además de actualizar la posición de golem a dicho
+ * estante.
+ */
+establece_estante_observado(KB, Estante, Productos, NuevaKB) :-
+    modifica_propiedad_de_objeto(KB, pos=>Estante, golem, KB1),
+    modifica_propiedad_de_objeto(KB1, tiene=>Productos, Estante, KB2),
+    obten_observaciones(KB1, Obs),
+    delete(Obs, _=>Estante, Obs1),
+    filtra_por_atributos(Obs1, Productos, ABorrar),
+    subtract(Obs1, ABorrar, Obs2),
+    construye_observaciones(Productos, Estante, NObs),
+    append(NObs, Obs2, Observaciones),
+    modifica_propiedad_de_objeto(KB2, obs=>val(Observaciones), golem, NuevaKB),
+    !.
+
+/*
+ * Prepara la base de conocimiento para establecer el estado de un
+ * estante, observarlo y actualizar el estado interno de golem.
+ */
+prepara_kb_obs(File, Estante, Productos, NuevaKB) :-
+    open_kb(File, KB),
+    establece_estante_observado(KB, Estante, Productos, KB1),
+    lista_de_objetos_a_reacomodar(KB1,Productos,Estante,AReac_),
+    extension_de_propiedad_(KB1, alcanzable, Objs),
+    filtra_por_valor(Objs, no, NoAlcanzables),
+    lista_de_atributos(NoAlcanzables, ObjsNoAlcanzables),
+    intersection(ObjsNoAlcanzables,Productos,NoAlcanzablesAqui),
+    ((dif(NoAlcanzablesAqui,[]),
+      obten_inalcanzables(KB,Inalcanzables),
+      subtract(NoAlcanzablesAqui,Inalcanzables,InalcanzablesNuevos),
+      dif(InalcanzablesNuevos,[]),
+      append(Inalcanzables,InalcanzablesNuevos,NuevosInalcanzables_),
+      list_to_set(NuevosInalcanzables_,NuevosInalcanzables),
+      modifica_propiedad_de_objeto(KB1,inalcanzables=>val(NuevosInalcanzables),golem,KB2),
+      !);
+     (KB2=KB1)),
+    ((dif(NoAlcanzablesAqui,[]),
+      obten_acciones_pendientes(KB2,Pendientes),
+      objetos_validos(Pendientes,ObjetosEnPendientes),
+      intersection(NoAlcanzablesAqui,ObjetosEnPendientes,NoAlcanzablesAquiEnPendientes),
+      dif(NoAlcanzablesAquiEnPendientes,[]),
+      elimina_de_pendientes(Pendientes,ObjetosEnPendientes,NuevosPendentes),
+      modifica_propiedad_de_objeto(KB2,pendientes=>val(NuevosPendentes),golem,KB3),
+      !);
+     (KB3=KB2)),
+    propiedades_de_objeto(KB3,golem,Props),
+    filtra_por_atributo(Props,pendientes,[_=>val(Pends)]),
+    subtract(AReac_,NoAlcanzablesAqui,AReac),
+    union(Pends,AReac,Pendientes),
+    modifica_propiedad_de_objeto(KB3,pendientes=>val(Pendientes),golem,NuevaKB_),
+    (agrega_propiedad_a_objeto(NuevaKB_,observado,Estante,NuevaKB);modifica_propiedad_de_objeto(NuevaKB_,observado,Estante,NuevaKB)),
+    !.
+
+/*
+ * Realiza la simulación de un paso, utilizando una base de
+ * conocimiento template que está en FILE, actualizando los PRODUCTOS
+ * en ESTANTE y a partir de ahí, realizar un diagnóstico, toma de
+ * decisión y un plan de acción.
+ * ?- prueba_simulacion_un_paso('ejercicios/ejercicio1.txt',drink_shelf,[coca,heineken],Diag,Decs,Plan).
+ */
+prueba_simulacion_un_paso(File, Estante, Productos, Diag, Decs, Plan) :-
+    prepara_kb_obs(File, Estante, Productos, KB),
+    write('Mi diagnóstico es: '), nl,nl,
+    diagnostico(KB, Diag, KB1),
+    imprime(Diag),nl,nl,
+    decision(KB1, Decs),
+    write('Mi decisión es: '), nl,nl,
+    imprime(Decs),nl,nl,
+    planeacion(KB1, Decs, Plan),
+    write('Mi plan es: '),nl,nl,
+    imprime(Plan), nl, nl.
