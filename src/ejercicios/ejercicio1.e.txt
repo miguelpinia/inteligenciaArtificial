@@ -21,7 +21,11 @@
         movidos=>val([]),
         /* Acciones pendientes entregar(Oi),reacomodar(Oi)*/ /* entregar(coca), entregar(kellogs), entregar(maruchan), reacomodar(noodles), reacomodar(bisquits),*/
         pendientes=>val([entregar(coca)]),
-        inalcanzable=>val([])
+        inalcanzable=>val([]),
+        /* Aqui guardaremos la primera observación de los objetos */
+        primera_observacion=>val([]),
+        /* Los objetos en reporte */
+        objetos_en_reporte=>val([coca,heineken,noodles,bisquits])
     ],[]),
     /* Aqui definimos clases y objetos con caracteristicas
      * Creamos una superclase por estante y como subclases una por cada tipo de producto que se acomode en el estante,
