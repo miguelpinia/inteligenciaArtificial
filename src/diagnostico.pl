@@ -35,12 +35,22 @@ diagnostico(KB,Diagnostico,NuevaKB):-
     * Generamos el diagnostico en base a las SiguientesCreencias y lo que ha reacomodado el robot
     * Los objetos reacomodados por el robot NO APARECEN EN EL DIAGNOSTICO
     */
-    extension_de_clase(KB2,producto,Productos),
-    obten_movidos(KB2,MovidosPorGolem),
+    %extension_de_clase(KB2,producto,Productos),
+    %obten_movidos(KB2,MovidosPorGolem),
     %write('XXXXXXXXXXXXXX MOVIDOS XXXXXxxx'),write(MovidosPorGolem),nl,
-    subtract(Productos,MovidosPorGolem,NoMovidosPorGolem),
+    %subtract(Productos,MovidosPorGolem,NoMovidosPorGolem),
     %write('XXXXXXXXXXXXXX NO MOVIDOS XXXXXxxx'),write(NoMovidosPorGolem),nl,
-    genera_diagnostico(SiguientesCreencias,NoMovidosPorGolem,Diagnostico),
+    %genera_diagnostico(SiguientesCreencias,NoMovidosPorGolem,Diagnostico),
+    /* Genera_diagnostico del asistente*/
+    /* Primero obtenemos las primeras observaciones de los productos */
+    propiedades_de_objeto(KB2,golem,Props),
+    filtra_por_atributo(Props,primera_observacion,[primera_observacion=>val(Primeras)]),
+    append(Primeras,SiguientesCreencias,CreenciasAReportar),
+    fusiona(CreenciasAReportar,CreenciasAReportarFusionadas),
+    /*Solo debemos reportar en el diagnostico lo que nos dijeron en el reporte*/
+    obtiene_objetos_en_reporte(KB,ObjetosEnReporte),
+    filtra_por_atributos(CreenciasAReportarFusionadas,ObjetosEnReporte,CreenciasAReportarFusionadasYFiltradas),
+    genera_diagnostico(KB2,CreenciasAReportarFusionadasYFiltradas,Diagnostico),
     /* Actualiza la KB para tener las SiguientesCreencias */
     modifica_propiedad_de_objeto(KB2,cree=>val(SiguientesCreencias),golem,NuevaKB).
 
@@ -112,19 +122,43 @@ agrega_sucesores(KB,PQ,IdPadre,Estado,UltimoIDUsado,[Lugar|Resto],NPQ):-
 /* Si ya no hay nada que agregar ya acabamos*/
 agrega_sucesores(_,PQ,_,_,_,[],PQ).
 
+/*
+* Genera el diagnosico en base a las creencias que se quireren reportar
+*
+*/
+genera_diagnostico(KB,CreenciasAReportar,Diagnostico):-
+    lista_de_valores(CreenciasAReportar,Estantes_),
+    list_to_set(Estantes_,Estantes),
+    estantes_ordenados(KB,mostrador,Estantes,EstantesOrdenados),
+    genera_acciones(EstantesOrdenados,mostrador,CreenciasAReportar,Diagnostico),
+    !.
 
 /*
-* genera_diagnostico de las actividades realizadas por el ASISTENTE HUMANO
+* Ordena los estantes para tener el mejor recorrido del humano
+* El inicio es el punto de partida,
+* el siguiente eleento será el mas cercano
 */
-genera_diagnostico(Creencias,NoMovidosPorGolem,Diagnostico):-
-    filtra_por_atributos(Creencias,NoMovidosPorGolem,CrenciasIncluidas),
-    %write('XXXXXXXXXX CREENCIAS XXXXXXXX'),write(NoMovidosPorGolem),nl,
-    %write('XXXXXXXXXX NoMovidoPorGolem XXXXXXXX'),write(Creencias),nl,
-    %write('XXXXXXXXXX CrenciasIncluidas XXXXXXXX'),write(CrenciasIncluidas),nl,
-    lista_de_valores(CrenciasIncluidas,Estantes_),
-    list_to_set(Estantes_,Estantes),
-    genera_acciones(Estantes,mostrador,CrenciasIncluidas,Diagnostico),
+estantes_ordenados(_,_,[],[]):-!.
+
+estantes_ordenados(KB,Inicio,Estantes,[EstanteMasCercano|RestoOrdenado]):-
+    dif(Estantes,[]),
+    genera_llaves(KB,Inicio,Estantes,ListaPQ),
+    agrega_pq_muchos([],ListaPQ,[_=>EstanteMasCercano|_]),
+    delete(Estantes,EstanteMasCercano,Resto),
+    estantes_ordenados(KB,EstanteMasCercano,Resto,RestoOrdenado).
+
+/*
+* Genera la lista de llaves basadas en el costo de moverse del inicio al cada lugar
+* genera_llaves(Inicio,Estantes,ListaPQ)
+*/
+genera_llaves(KB,Inicio,[Estante|Resto],[C=>Estante|RestoConLlave]):-
+    obten_costo(KB,mover(Inicio,Estante),C),
+    genera_llaves(KB,Inicio,Resto,RestoConLlave),
     !.
+
+genera_llaves(_,_,[],[]).
+
+/* Genera las acciones del diagnostico */
 
 genera_acciones([Estante|Resto],Anterior,Creencias,Acciones):-
     filtra_por_valor(Creencias,Estante,EnEstante),
