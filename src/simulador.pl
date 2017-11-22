@@ -172,7 +172,7 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB,_):-
             dif(NoAlcanzablesAquiEnPendientes,[]),
             nl, write('Los siguientes objetos no se pueden alcanzar y se omitiran de los pendientes: '),nl,
             imprime(NoAlcanzablesAqui),
-            elimina_de_pendientes(Pendientes,ObjetosEnPendientes,NuevosPendentes),
+            elimina_de_pendientes(Pendientes,NoAlcanzablesAquiEnPendientes,NuevosPendentes),
             modifica_propiedad_de_objeto(KB2_,pendientes=>val(NuevosPendentes),golem,KB3),
             Ok=0,
             !
