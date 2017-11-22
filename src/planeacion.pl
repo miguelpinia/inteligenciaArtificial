@@ -36,9 +36,13 @@ transforma_plan([Accion|RestoPlanBA],[Accion|RestoPlan]):-
 transforma_plan([],[]).
 
 /* Caso base si ya no hay pendientes ya terminamos y el plan esta dentro del estado */
-plan(_,[_=>node(Id,Padre,G,edo(Pos,Izq,Der,[],Plan))|_],_,Plan):-
-    %nl,write(node(Id,Padre,G,edo(Pos,Izq,Der,[],Plan))),nl,
+plan(_,[_=>node(_,_,_,edo(_,_,_,[],Plan))|_],_,Plan):-
     !.
+
+/*plan(_,[Key=>node(Id,Padre,G,edo(Pos,Izq,Der,[],Plan))|Resto],Cerrados,Plan):-
+    todos_planeacion([Key=>node(Id,Padre,G,edo(Pos,Izq,Der,[],Plan))|Resto],Cerrados,Todos),
+    save_kb('planeacion.txt',Todos),
+    !.*/
 
 /* Caso en que no es meta */
 

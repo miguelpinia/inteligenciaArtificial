@@ -32,7 +32,7 @@ simulador(KB):-
 /* Si al ejecutar la primera acción todo sale bien seguimos con la ejecución*/
 simula_plan(KB,[Accion|Resto],Ok,NuevaKB):-
     write('Accion: '),write(Accion),nl,
-    simula_accion(KB,Accion,AOk,KB2),
+    simula_accion(KB,Accion,AOk,KB2,1),
     %imprime(KB2),nl,
     (
         (
@@ -62,7 +62,7 @@ simula_plan(KB,[],1,KB).
 * Cada acción tiene una probabilidad de éxito,
 * Si un número aleatorio del [0,1) es mayor o igual a la probabilidad fallamos.
 */
-simula_accion(KB,Accion,Ok,KB):-
+simula_accion(KB,Accion,Ok,KB,1):-
     obten_probabilidad(KB,Accion,P),
     random(0.0,1.0,R),
     P =< R,
@@ -76,7 +76,7 @@ simula_accion(KB,Accion,Ok,KB):-
 * Si la posición Lj no es mostrador o algún estante fallará.
 * Actualizala propiedad pos de golem
 */
-simula_accion(KB,mover(Li,Lj),1,NuevaKB):-
+simula_accion(KB,mover(Li,Lj),1,NuevaKB,_):-
     obten_posicion(KB,Li),
     extension_de_clase(KB,estante,Estantes),
     member(Lj,[mostrador|Estantes]),
@@ -88,7 +88,7 @@ simula_accion(KB,mover(Li,Lj),1,NuevaKB):-
 * Ok=1 Si el objeto se encontró
 * Ok = 0 Si el objeto no se encontró
 */
-simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
+simula_accion(KB,buscar(Oi),Ok,NuevaKB,_):-
     obten_posicion(KB,Pos),
     /* Aqui tenemos que actualizar las observaciones */
     obten_observaciones(KB,Observaciones),
@@ -213,7 +213,7 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
     (agrega_propiedad_a_objeto(NuevaKB_,observado,Pos,NuevaKB);modifica_propiedad_de_objeto(NuevaKB_,observado,Pos,NuevaKB)),
     !.
 
-simula_accion(KB,agarrar(Oi),1,NuevaKB):-
+simula_accion(KB,agarrar(Oi),1,NuevaKB,_):-
     obten_posicion(KB,Pos),
     obten_observaciones(KB,Observaciones),
     /*Verificamos que el objeto esta donde estamos parados*/
@@ -259,7 +259,7 @@ simula_accion(KB,agarrar(Oi),1,NuevaKB):-
     ),
     !.
 
-simula_accion(KB,colocar(Oi),1,NuevaKB):-
+simula_accion(KB,colocar(Oi),1,NuevaKB,_):-
     obten_posicion(KB,Pos),
     /* Buscamos dónde está el objeto Oi*/
     extension_de_relacion_(KB,tiene,Ext),
@@ -306,7 +306,7 @@ simula_accion(KB,colocar(Oi),1,NuevaKB):-
 /*
 * En cualquier otro caso regresamos la base inicial y Ok=0.
 */
-simula_accion(KB,_,0,KB).
+simula_accion(KB,_,0,KB,_).
 
 /*
 * lista_de_objetos_a_reacomodar(KB,Objetos,Pos,ListaReacomodar)
