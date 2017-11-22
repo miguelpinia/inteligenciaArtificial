@@ -70,10 +70,9 @@ lugares_validos(KB,Pendientes,Lugares):-
     lugares_validos_(KB,Pendientes,Lugares).
 
 /*
-* lugares_validos_(KB,Pendientes,Lugares)
-* lo mismo que lugares_validos_(KB,Pendientes,Lugares) pero puede contener izq o der
-*/
-
+ * lugares_validos_(KB,Pendientes,Lugares)
+ * lo mismo que lugares_validos_(KB,Pendientes,Lugares) pero puede contener izq o der
+ */
 lugares_validos_(KB,[entregar(Oi)|Resto],Lugares):-
     obten_creencias(KB,Creencias),
     filtra_por_atributo(Creencias,Oi,[Oi=>LugarOi|_]),
@@ -95,10 +94,10 @@ lugares_validos_(KB,[reacomodar(Oi)|Resto],Lugares):-
 lugares_validos_(_,[],[]).
 
 /*
-* objetos_validos(Pendientes,Objetos)
-* regresa solo los objetos que nos interesan segun los pendientes
-* solo buscaremso o agarraremos objetos que nos inteesan
-*/
+ * objetos_validos(Pendientes,Objetos)
+ * regresa solo los objetos que nos interesan segun los pendientes
+ * solo buscaremso o agarraremos objetos que nos inteesan
+ */
 objetos_validos([entregar(Oi)|Resto],Objetos):-
     objetos_validos(Resto,RestoObjetos),
     union([Oi],RestoObjetos,Objetos),
@@ -114,23 +113,16 @@ objetos_validos([],[]).
 
 plan_suc(KB,node(Id,Padre,G,edo(mostrador,Izq,Der,Pend,Plan)),LastId,Sucesores):-
 	/*Movernos solo a los lugares validos excepto por donde estamos*/
-    lugares_validos(KB,Pend,Lugares),
-    delete(Lugares,mostrador,DestinosValidos_),
-    /*Ademas no queremos regresar a donde ya estuvimos*/
-    visitados(Plan,Visitados),
-    subtract(DestinosValidos_,Visitados,DestinosValidos),
-    calcula_mover(mostrador,DestinosValidos,Movimientos),
-    /* Si el ultimo del plan es mover no queremos movernos mas
-    (
-        (
-            last(Plan,mover(_,_)),
-            Movimientos = [],
-            !
-        );
-        (
-            calcula_mover(mostrador,DestinosValidos,Movimientos)
-        )
-    ),*/
+    (   last(Plan, Ultimo);
+        Ultimo = ba(_)),
+    (   (   Ultimo = mover(_, _),
+            Movimientos = [], !);
+        (   lugares_validos(KB,Pend,Lugares),
+            delete(Lugares,mostrador,DestinosValidos_),
+            /*Ademas no queremos regresar a donde ya estuvimos*/
+            visitados(Plan,Visitados),
+            subtract(DestinosValidos_,Visitados,DestinosValidos),
+            calcula_mover(mostrador,DestinosValidos,Movimientos))),
 	(
 		(/*Si el brazo izquierdo esta vacio no podemos entregar */
 			Izq=[],
@@ -168,31 +160,24 @@ plan_suc(KB,node(Id,Padre,G,edo(mostrador,Izq,Der,Pend,Plan)),LastId,Sucesores):
 
 plan_suc(KB,node(Id,Padre,G,edo(Estante,Izq,Der,Pend,Plan)),LastId,Sucesores):-
 	dif(Estante,mostrador),
-	/*Movernos solo a los lugares validos excepto por donde estamos*/
-    lugares_validos(KB,Pend,Lugares),
-    delete(Lugares,Estante,DestinosValidos_),
-    /*Ademas no queremos regresar a donde ya estuvimos*/
-    visitados(Plan,Visitados),
-    subtract(DestinosValidos_,Visitados,DestinosValidos),
-	calcula_mover(Estante,DestinosValidos,Movimientos),
-    /* Si el ultimo del plan es mover no queremos movernos mas
-    (
-        (
-            last(Plan,mover(_,_)),
-            Movimientos = [],
-            !
-        );
-        (
-            calcula_mover(mostrador,DestinosValidos,Movimientos)
-        )
-    ),*/
-	obten_creencias(KB,Creencias),
-	filtra_por_valor(Creencias,Estante,Filtrados),
-	lista_de_atributos(Filtrados,Objetos),
+    (   last(Plan, Ultimo);
+        Ultimo = ba(_)),
+    (   (   Ultimo = mover(_, _),
+            Movimientos = [], !);
+        /*Movernos solo a los lugares validos excepto por donde estamos*/
+        (   lugares_validos(KB,Pend,Lugares),
+            delete(Lugares,Estante,DestinosValidos_),
+            /*Ademas no queremos regresar a donde ya estuvimos*/
+            visitados(Plan,Visitados),
+            subtract(DestinosValidos_,Visitados,DestinosValidos),
+            calcula_mover(Estante,DestinosValidos,Movimientos))),
+    obten_creencias(KB,Creencias),
+    filtra_por_valor(Creencias,Estante,Filtrados),
+    lista_de_atributos(Filtrados,Objetos),
     objetos_validos(Pend,Validos),
     intersection(Objetos,Validos,ObjetosValidos),
     /* Calculamos los objetos que podemos buscar y agarrar*/
-	calcula_ba(ObjetosValidos,Ba),
+    calcula_ba(ObjetosValidos,Ba),
     (
 		(
 			Izq=[],
@@ -249,9 +234,9 @@ calcula_ba([Objeto|Resto],[ba(Objeto)|Ba_resto]):-
 calcula_ba([],[]).
 
 /*
-* visitados(Plan,Lugares)
-* Calcula los lugares visitados basado en el plan
-*/
+ * visitados(Plan,Lugares)
+ * Calcula los lugares visitados basado en el plan
+ */
 visitados([mover(_,Lj)|Resto],Lugares):-
     visitados(Resto,RestoLugares),
     union([Lj],RestoLugares,Lugares),
@@ -264,10 +249,9 @@ visitados([Accion|Resto],Lugares):-
 
 visitados([],[]).
 
+
 calcula_sucesores(KB,[Accion|Acciones],node(Id,IdPadre,H,edo(Pos,Izq,Der,Pend,Plan)),LastId,
-		[Key=>node(Nuevo_Id,Id,Key,edo(Nueva_pos,Nuevo_izq,Nuevo_der,Nuevos_pend,Nuevo_plan))|Sucesores]):-
-	%nl,write(node(Id,_,G,edo(Pos,Izq,Der,Pend,Plan))),nl,
-	%write(Accion),nl,
+                  [Key=>node(Nuevo_Id,Id,Key,edo(Nueva_pos,Nuevo_izq,Nuevo_der,Nuevos_pend,Nuevo_plan))|Sucesores]):-
 	(
 		(
 			Accion=mover(Pos,Lj),
@@ -330,9 +314,10 @@ calcula_sucesores(KB,[Accion|Acciones],node(Id,IdPadre,H,edo(Pos,Izq,Der,Pend,Pl
 			)
 		)
 	),
-	append(Plan,[Accion],Nuevo_plan),
-    %write(Accion),nl,
-    %write(Nuevo_plan),nl,nl,
+    append(Plan,[Accion],Nuevo_plan),
+	obten_costo(KB,Accion,C),
+    obten_probabilidad(KB,Accion,P),
+	/* Checar si es necesario el + 1 */
 	Nuevo_Id is LastId + 1,
 	calcula_costo_de_plan(KB,Nuevo_plan,CostoTotal),
     calcula_probabilidad_de_plan(KB,Nuevo_plan,ProbabilidadTolal),
