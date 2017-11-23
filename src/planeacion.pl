@@ -315,8 +315,6 @@ calcula_sucesores(KB,[Accion|Acciones],node(Id,IdPadre,H,edo(Pos,Izq,Der,Pend,Pl
 		)
 	),
     append(Plan,[Accion],Nuevo_plan),
-	obten_costo(KB,Accion,C),
-    obten_probabilidad(KB,Accion,P),
 	/* Checar si es necesario el + 1 */
 	Nuevo_Id is LastId + 1,
 	calcula_costo_de_plan(KB,Nuevo_plan,CostoTotal),
