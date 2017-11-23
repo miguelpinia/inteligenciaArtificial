@@ -33,13 +33,13 @@ simulador(KB):-
 
 /* Si al ejecutar la primera acción todo sale bien seguimos con la ejecución*/
 simula_plan(KB,[Accion|Resto],Ok,NuevaKB):-
-    write('Accion: '),write(Accion),nl,
+    write('Acción: '),write(Accion),nl,
     simula_accion(KB,Accion,AOk,KB2,1),
     %imprime(KB2),nl,
     (
         (
             AOk=1,
-            nl,write('Exito'),nl,
+            nl,write('Éxito'),nl,
             simula_plan(KB2,Resto,Ok,NuevaKB),
             !
         );
