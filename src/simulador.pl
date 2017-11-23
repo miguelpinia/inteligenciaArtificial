@@ -458,15 +458,32 @@ prepara_kb_obs(KB, Estante, Productos, NuevaKB) :-
  * decisión y un plan de acción.
  * ?- prueba_simulacion_un_paso('ejercicios/ejercicio1.txt',drink_shelf,[coca,heineken],Diag,Decs,Plan).
  */
-prueba_simulacion_un_paso(File, Estante, Productos, Diag, Decs, Plan) :-
+simula_un_paso(File, Estante, Productos) :-
     open_kb(File, KB),
-    prepara_kb_obs(KB, Estante, Productos, KB),
+    prepara_kb_obs(KB, Estante, Productos, KB1),
     write('Mi diagnóstico es: '), nl,nl,
-    diagnostico(KB, Diag, KB1),
+    diagnostico(KB1, Diag, KB2),
     imprime(Diag),nl,nl,
-    decision(KB1, Decs),
+    decision(KB2, Decs),
     write('Mi decisión es: '), nl,nl,
     imprime(Decs),nl,nl,
-    planeacion(KB1, Decs, Plan),
+    planeacion(KB2, Decs, Plan),
     write('Mi plan es: '),nl,nl,
     imprime(Plan), nl, nl, !.
+
+/*
+ * Predicado para simulador dos pasos de observación consecutivos.
+ */
+simula_dos_pasos(File, [Estante1,Estante2],[ProdsEst1,ProdsEst2]) :-
+    open_kb(File,KB),
+    prepara_kb_obs(KB,Estante1,ProdsEst1,NKB),
+    prepara_kb_obs(NKB,Estante2,ProdsEst2,NKB1),
+    diagnostico(NKB1,Diag,NKB2),
+    decision(NKB2,Decs),
+    planeacion(NKB2,Decs,Plan),
+    write('Mi diagnóstico es: '), nl,
+    imprime(Diag),nl,nl,
+    write('Mi decisión es: '), nl,
+    imprime(Decs),nl,nl,
+    write('Mi plan es: '),nl,
+    imprime(Plan), nl, nl.
