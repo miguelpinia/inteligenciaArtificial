@@ -84,32 +84,30 @@ simula_accion(KB,mover(Li,Lj),1,NuevaKB,_):-
     member(Lj,[mostrador|Estantes]),
     modifica_propiedad_de_objeto(KB,pos=>Lj,golem,NuevaKB),
     !.
+
 /*
 * Simula la acción de buscar(Oi),
 * Actualiza la KB con lo observado
 * Ok=1 Si el objeto se encontró
-* Ok = 0 Si el objeto no se encontró
+* Ok = 0 Si el objeto no se encontró o se moificaron las metas por objetos inalcanzables
 */
 simula_accion(KB,buscar(Oi),Ok,NuevaKB,_):-
+    /* Obtenemos la posición actual del robot */
     obten_posicion(KB,Pos),
     /* Aqui tenemos que actualizar las observaciones */
     obten_observaciones(KB,Observaciones),
-    /* Eliminamos cualquier objeto que fué observado previamente*/
-    delete(Observaciones,_=>Pos,Obs),
     /* Obtenemos el contenido del estante*/
     ((relaciones_de_objeto(KB,Pos,Rels),filtra_por_atributo(Rels,tiene,[tiene=>Contenido]),!);Contenido=[]),
-    /* Borramos cualquier observación anterior de los objetos contenidos */
-    filtra_por_atributos(Obs,Contenido,ABorrar),
-    /* Aviso si hay go que no sabía*/
+    /* Para avisar si hay go que no sabía veo lo que me pasaron en el reporte*/
     obtiene_objetos_en_reporte(KB,ObjetosEnReporte),
-    subtract(Contenido,ObjetosEnReporte,NoConocodos),
+    /* Obtengo los objetos que NO estan en el reporte*/
+    subtract(Contenido,ObjetosEnReporte,NoConocidos),
+    /* De esos, solo los que no he marcado los tengo que reportar */
+    obten_productos_marcados(KB,Marcados),
+    /* borro los que ya marqué */
+    subtract(NoConocidos,Marcados,NuevosDesconocidos),
     (
-        (/* Hy algun nuevo objeto que no conocía?*/
-            dif(NoConocodos,[]),
-            /* Proceso los que no he marcado solamente */
-            obten_productos_marcados(KB,Marcados),
-            /* borro los que ya marqué, ya debí haberlos reportado*/
-            subtract(NoConocodos,Marcados,NuevosDesconocidos),
+        (/* Hay algun nuevo objeto que no conocía realmente?*/
             dif(NuevosDesconocidos,[]),
             /* Reporto */
             nl,write('Me dí cuenta que también hay:'),nl,
@@ -120,99 +118,101 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB,_):-
             true
         )
     ),
-    /* Registramos los objetos vistos por primera vez*/
-    marca_productos(KB,Contenido,Pos,KB1),
-    subtract(Obs,ABorrar,Obs2),
-    /* Construimos observaciones */
-    construye_observaciones(Contenido,Pos,NObs),
-    /* Agregamos las observaciones*/
-    append(NObs,Obs2,NuevasObservaciones),
-    modifica_propiedad_de_objeto(KB1,obs=>val(NuevasObservaciones),golem,KB2),
-    /* Necesiamos saber si hay objetos que se deben reacomodar*/
-    obten_acciones_pendientes(KB,PendientesPrevios),
-    objetos_validos(PendientesPrevios,ObjetosPrevios),
-    /*Quitamos del contenido los que ya estan en alguna meta */
-    subtract(Contenido,ObjetosPrevios,SubContenido),
-    lista_de_objetos_a_reacomodar(KB2,SubContenido,Pos,AReac_),
-    /* Buscar los objetos que no son alcanzables e imprime un mensaje. */
-    extension_de_propiedad_(KB2, alcanzable, Objs),
-    filtra_por_valor(Objs, no, NoAlcanzables),
-    lista_de_atributos(NoAlcanzables, ObjsNoAlcanzables),
-    intersection(ObjsNoAlcanzables,Contenido,NoAlcanzablesAqui),
+    /* Productos que no estan en su lugar */
+    /* De los productos en Contenido que no han sido marcados son con los que trabajaremos */
+    subtract(Contenido,Marcados,NuevosVistos),
+    /* Calculamos los no alcanzables y vemos cuales de los nuevos no alcanzamos */
+    calcula_inalcanzables_en_realidad(KB,Inalcanzables),
+    intersection(NuevosVistos,Inalcanzables,NuevosInalcanzables),
     (
-        (
-            /* Solo cambiamos algo si hay que hacerlo*/
-            dif(NoAlcanzablesAqui,[]),
-            /* Agregamos los objetos que no podemos alcanzar en este lugar */
-            obten_inalcanzables(KB,Inalcanzables),
-            subtract(NoAlcanzablesAqui,Inalcanzables,InalcanzablesNuevos),
-            /*Solo avanzo si hay nuevos inalcanzables, en otro caso ya avisé*/
-            dif(InalcanzablesNuevos,[]),
+        (/* Si hay nuevos inalcanzables los debo reportar, quitarlos de las metas y agragarlos a lo inalcanzable */
+            dif(NuevosInalcanzables,[]),
             nl,write('Me dí cuenta que no puedo alcanzar esto:'),nl,
-            imprime(InalcanzablesNuevos),nl,
-            append(Inalcanzables,InalcanzablesNuevos,NuevosInalcanzables_),
-            list_to_set(NuevosInalcanzables_,NuevosInalcanzables),
-            modifica_propiedad_de_objeto(KB2,inalcanzables=>val(NuevosInalcanzables),golem,KB2_),
+            imprime(NuevosInalcanzables),nl,
+            /* Agrego en la propiedad inalcanzable de golem */
+            obten_inalcanzables(KB,InalcanzablesConocidos),
+            append(InalcanzablesConocidos,NuevosInalcanzables,NuevosInalcanzablesConocidos),
+            modifica_propiedad_de_objeto(KB,inalcanzable=>val(NuevosInalcanzablesConocidos),golem,KB2),
+            /* Obtengo los pendientes */
+            obten_acciones_pendientes(KB2,Pendientes),
+            /* Obtengo los objetos que estan actualmente en metas*/
+            objetos_validos(Pendientes,ObjetosEnPendientes),
+            /* Obengo los nuevos inalcanzables que hay en los pendientes*/
+            intersection(NuevosInalcanzables,ObjetosEnPendientes,NuevosInalcanzablesEnPendientes),
+            (
+                (/* Si hay inalcanzables en las metas debo eliminarlas y además debo fallar */
+                    dif(NuevosInalcanzablesEnPendientes,[]),
+                    elimina_de_pendientes(Pendientes,NuevosInalcanzablesEnPendientes,NuevosPendientes),
+                    /* Calculo los que borré*/
+                    subtract(Pendientes,NuevosPendientes,PendientesAEliminar),
+                    nl,write('Debo eliminar de mis pendientes:'),nl,
+                    imprime(PendientesAEliminar),nl,
+                    modifica_propiedad_de_objeto(KB2,pendientes=>val(NuevosPendientes),golem,KB3),
+                    CambioEnMetas=1,
+                    !
+                );
+                (/* En otro caso solo agregué lso nuevos inalcanzables a la propiedad de golem y no cambie metas */
+                    KB3 = KB2,
+                    CambioEnMetas=0
+                )
+            ),
+            !
+        );
+        (/*Sino no hay cambio en la base en este punto y no cambie metas */
+            KB3 = KB,
+            CambioEnMetas=0
+        )
+    ),
+    /* Registramos los objetos vistos por primera vez y su posisión original */
+    marca_productos(KB3,Contenido,Pos,KB4),
+    /* La lista de reacomodos debe contener solamente a los nuevos que podemos alcanzar */
+    subtract(NuevosVistos,NuevosInalcanzables,ObjetosAReacomodar),
+    /* Consruimos la lista de reacomodos*/
+    lista_de_objetos_a_reacomodar(KB4,ObjetosAReacomodar,Pos,ListaDeReacomodos),
+    (
+        (/* Si la lista de reacomodos es no vacía debo reportar los pendientes a agregar y agregar en los pendientes de golem */
+            dif(ListaDeReacomodos,[]),
+            nl,write('Debo agregar a mis pendientes:'),nl,
+            imprime(ListaDeReacomodos),nl,
+            /* Los nuevos pendientes serán los pendientes en la base anterior mas la lista de reacomodos*/
+            obten_acciones_pendientes(KB4,PendientesActualizados),
+            append(PendientesActualizados,ListaDeReacomodos,NuevosPendientesDefinitivos),
+            modifica_propiedad_de_objeto(KB4,pendientes=>val(NuevosPendientesDefinitivos),golem,KB5),
             !
         );
         (
-            KB2_=KB2
+            KB5=KB4
         )
     ),
+    construye_observaciones(Contenido,Pos,NuevasObservaciones),
+    append(NuevasObservaciones,Observaciones,ObservacionesSinFusionar),
+    fusiona(ObservacionesSinFusionar,ObservacionesDefinitivas),
+    modifica_propiedad_de_objeto(KB5,obs=>val(ObservacionesDefinitivas),golem,KB6),
     (
         (
-
-            dif(NoAlcanzablesAqui,[]),
-            /* XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */
-            /* Si hay acciones pendientes con objetos no alcanzables que ya he observado tengo que parar*/
-            /* Debo recalcular mi plan                                                                  */
-            /* XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */
-            obten_acciones_pendientes(KB2,Pendientes),
-            objetos_validos(Pendientes,ObjetosEnPendientes),
-            intersection(NoAlcanzablesAqui,ObjetosEnPendientes,NoAlcanzablesAquiEnPendientes),
-            /* Avanzo solo en caso de que haya alguna meta que me de cuenta que no puedo despachar */
-            dif(NoAlcanzablesAquiEnPendientes,[]),
-            nl, write('Los siguientes objetos no se pueden alcanzar y se omitiran de los pendientes: '),nl,
-            imprime(NoAlcanzablesAqui),
-            elimina_de_pendientes(Pendientes,NoAlcanzablesAquiEnPendientes,NuevosPendentes),
-            modifica_propiedad_de_objeto(KB2_,pendientes=>val(NuevosPendentes),golem,KB3),
+            (
+                (
+                    not(member(Oi,Contenido)),
+                    nl,write('No vi:'),nl,write(Oi),nl,nl,
+                    !
+                );
+                CambioEnMetas=1
+            ),
             Ok=0,
             !
         );
-        (KB3=KB2,
-        /* Solo en caso de que el objeto que buscamos está en lo que vimos estamos bien*/
         (
-            (
-                member(Oi,Contenido),
-                Ok=1
-            );
-                Ok=0,
-                nl,write('No ví: '),write(Oi),nl
-            )
+            Ok = 1
         )
     ),
-    /*Obtenemos la lista de tareas pendientes */
-    propiedades_de_objeto(KB3,golem,Props),
-    filtra_por_atributo(Props,pendientes,[_=>val(Pends)]),
-    subtract(AReac_,NoAlcanzablesAqui,AReac),
-    (
-        (
-            /* Calculo loq ue vi menos lo que ya hay */
-            subtract(AReac,Pends,NAReac),
-            dif(NAReac,[]),
-            nl,write('Debo agregar a mis pendientes:'),nl,
-            imprime(NAReac),nl,
-            !
+    (/* Por último marcamos el estante observado*/
+        (/* Si aún no lo esta */
+            agrega_propiedad_a_objeto(KB6,observado,Pos,NuevaKB)
         );
-        (
-            true
+        (/* En caso contrario ya terminamos */
+            NuevaKB = KB6
         )
     ),
-    union(Pends,AReac,NuevosPendientes),
-    /* Actualizamos la lista de pendientes*/
-    modifica_propiedad_de_objeto(KB3,pendientes=>val(NuevosPendientes),golem,NuevaKB_),
-    /* Lo marcamos como observado*/
-    (agrega_propiedad_a_objeto(NuevaKB_,observado,Pos,NuevaKB);modifica_propiedad_de_objeto(NuevaKB_,observado,Pos,NuevaKB)),
     !.
 
 simula_accion(KB,agarrar(Oi),1,NuevaKB,_):-
@@ -315,16 +315,21 @@ simula_accion(KB,_,0,KB,_).
 * Los Objetos que estan en Pos necesitan reacomodarse, y las acciones pendientes
 * generadas a partir de ellos estan en ListaReacomodar
 */
-lista_de_objetos_a_reacomodar(KB,[Objeto|Resto],Pos,[reacomodar(Objeto)|RestoAReacomodar]):-
+lista_de_objetos_a_reacomodar(KB,[Objeto|Resto],Pos,ListaDeReacomodos):-
     lugar_correcto_de_producto(KB,Objeto,Lugar),
-    dif(Pos,Lugar),
-    lista_de_objetos_a_reacomodar(KB,Resto,Pos,RestoAReacomodar),
-    !.
-
-lista_de_objetos_a_reacomodar(KB,[Objeto|Resto],Pos,RestoAReacomodar):-
-    lugar_correcto_de_producto(KB,Objeto,Lugar),
-    Pos = Lugar,
-    lista_de_objetos_a_reacomodar(KB,Resto,Pos,RestoAReacomodar),
+    (
+        (
+            dif(Pos,Lugar),
+            lista_de_objetos_a_reacomodar(KB,Resto,Pos,RestoAReacomodar),
+            ListaDeReacomodos = [reacomodar(Objeto)|RestoAReacomodar],
+            !
+        );
+        (
+            Pos = Lugar,
+            lista_de_objetos_a_reacomodar(KB,Resto,Pos,RestoAReacomodar),
+            ListaDeReacomodos = RestoAReacomodar
+        )
+    ),
     !.
 
 lista_de_objetos_a_reacomodar(_,[],_,[]).

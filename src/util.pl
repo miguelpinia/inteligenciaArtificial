@@ -524,7 +524,7 @@ es_vacia(Lista) :- Lista = [].
 * Obtiene los objetos que golem sabe son inalcanzables
 */
 obten_inalcanzables(KB,Inalcanzables):-
-    extension_de_propiedad_(KB,inalcanzables,[_=>val(Inalcanzables)]).
+    extension_de_propiedad_(KB,inalcanzable,[_=>val(Inalcanzables)]).
 
 /*
 * Obtiene la primera observacion de los objetos marcados
@@ -565,3 +565,9 @@ calcula_probabilidad_de_plan(KB,[Accion|Resto],ProbabilidadTolal):-
     !.
 
 calcula_probabilidad_de_plan(_,[],1.0).
+
+/* Calcula los objetos inalcanzables en la realidad */
+calcula_inalcanzables_en_realidad(KB,Inalcanzables):-
+    extension_de_propiedad_(KB,alcanzable,Ext),
+    filtra_por_valor(Ext,no,AtrValNoAlcanzables),
+    lista_de_atributos(AtrValNoAlcanzables,Inalcanzables).
