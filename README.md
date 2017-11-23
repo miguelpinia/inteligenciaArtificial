@@ -1,4 +1,4 @@
-# Proyecto de inferencia deliverativa.
+# Proyecto de inferencia oportunista
 
 Proyecto para el curso de inteligencia artificial de maestría en
 Ciencias e Ingeniería en Computación en IIMAS, UNAM. Implementada en
