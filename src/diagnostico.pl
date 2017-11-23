@@ -209,6 +209,16 @@ elimina_objetos_no_observados(KB,Observaciones,Creencias,NuevasCreencias,NuevaKB
             write('No encontré los objetos en las siguientes metas, así que las eliminaré de los pendientes:'),nl,
             subtract(Pendientes,NuevosPendientes,Eliminadas),
             imprime(Eliminadas),nl,
+            (
+                (
+                    NuevosPendientes=[],
+                    nl,write('Se han eliminado todos los pendientes...'),nl,nl,
+                    !
+                );
+                (
+                    true
+                )
+            ),
             /* modificamos la base con los nuevos pendientes */
             modifica_propiedad_de_objeto(KB,pendientes=>val(NuevosPendientes),golem,NuevaKB)
         )
