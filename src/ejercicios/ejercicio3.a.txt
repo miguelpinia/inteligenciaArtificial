@@ -12,7 +12,7 @@
         /* La posición actual de golem en los diferentes lugares*/
         pos=>mostrador,
         /* La lista de objeto=>lugar en donde golem cree que estan los objetos */
-        cree=>val([coca=>drink_shelf,heineken=>drink_shelf,noodles=>food_shelf,bisquits=>bread_shelf,kellogs=>food_shelf]),
+        cree=>val([coca=>drink_shelf,heineken=>drink_shelf,noodles=>food_shelf,bisquits=>bread_shelf]),
         /* La lista de objeto=>lugar ya observados */
         obs=>val([]),
         /* Los objetos que ha movido el robot se deben distinguir en el diagnóstico
@@ -21,7 +21,11 @@
         movidos=>val([]),
         /* Acciones pendientes entregar(Oi),reacomodar(Oi)*/ /* entregar(coca), entregar(kellogs), entregar(maruchan), reacomodar(noodles), reacomodar(bisquits),*/
         pendientes=>val([entregar(coca)]),
-        inalcanzable=>val([])
+        inalcanzable=>val([]),
+        /* Aqui guardaremos la primera observación de los objetos */
+        primera_observacion=>val([]),
+        /* Los objetos en reporte */
+        objetos_en_reporte=>val([coca,heineken,noodles,bisquits])
     ],[]),
     /* Aqui definimos clases y objetos con caracteristicas
      * Creamos una superclase por estante y como subclases una por cada tipo de producto que se acomode en el estante,
@@ -37,7 +41,7 @@
     /* LA COMIDA */
     clase(food,producto,[],[loc=>food_shelf],[]),
     clase(cereal,food,[],[],[kellogs]),
-    objeto(kellogs,cereal,[],[]),
+    objeto(kellogs,cereal,[not(alcanzable)],[]),
     clase(sopa,food,[],[],[noodles]),
     objeto(noodles,sopa,[],[]),
     /* EL PAN */
@@ -46,7 +50,7 @@
     objeto(bisquits,galletas,[],[]),
 
     /* POSICIONES */
-    clase(lugar,top,[],[],[mostrador,inalcanzable]),
+    clase(lugar,top,[],[],[mostrador]),
     /* El objeto mostrador*/
     objeto(mostrador,lugar,[],[]),
     /* LOS BAZOS LOS CONSIDERAMOS LUGARES */
@@ -55,7 +59,7 @@
     objeto(der,brazo,[],[]),
     /* LOS ESTANTES DE LA TIENDA*/
     clase(estante,lugar,[not(observado)],[],[drink_shelf,food_shelf,bread_shelf]),
-    objeto(drink_shelf,estante,[],[tiene=>[coca, heineken,noodles,bisquits,kellogs]]),
+    objeto(drink_shelf,estante,[],[tiene=>[]]),
     objeto(food_shelf,estante,[],[tiene=>[]]),
     objeto(bread_shelf,estante,[],[tiene=>[]]),
 
@@ -65,5 +69,5 @@
     /* PROBABILIDADES */
     objeto(p,top,[p=>val([mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9,agarrar(Oi)=>0.9])],[]),
     /* COSTOS */
-    objeto(c,top,[c=>val([mover(mostrador,Li)=>1,mover(Li,Lj)=>1.73205807,buscar(Oi)=>0.25,colocar(Oi)=>0.5,agarrar(Oi)=>0.5])],[])
+    objeto(c,top,[c=>val([mover(drink_shelf,food_shelf)=>0.5,mover(food_shelf,drink_shelf)=>0.5,mover(drink_shelf,bread_shelf)=>10,mover(bread_shelf,drink_shelf)=>10,mover(mostrador,Li)=>1,mover(Li,mostrador)=>1,mover(Li,Lj)=>1.73205807,buscar(Oi)=>0.25,colocar(Oi)=>0.5,agarrar(Oi)=>0.5])],[])
 ]

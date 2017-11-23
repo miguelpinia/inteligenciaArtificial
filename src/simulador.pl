@@ -1,3 +1,5 @@
+:- [main, util, agrega, consulta, decision, diagnostico, elimina, modifica, planeacion].
+
 /* Si ya no hay acciones pendientes ya terminamos*/
 simulador(KB):-
     obten_acciones_pendientes(KB,[]),
@@ -10,11 +12,11 @@ simulador(KB):-
     decision(KB2,Decisiones),
     planeacion(KB2,Decisiones,Plan),
     ((not(es_vacia(Diagnostico)),
-      write('Mi diagnostico acerca de las acciones del asistente son:'),nl,
+      write('Mi diagnóstico acerca de las acciones del asistente son:'),nl,
       imprime(Diagnostico),nl);
      (write('No tengo información suficiente para realizar un diagnóstico.'),nl)),
     ((not(es_vacia(Decisiones)),
-      write('Mi decision es:'),nl,
+      write('Mi decisión es:'),nl,
       imprime(Decisiones),nl,
       write('Mi plan es:'),nl,
       imprime(Plan),nl);
@@ -32,7 +34,7 @@ simulador(KB):-
 /* Si al ejecutar la primera acción todo sale bien seguimos con la ejecución*/
 simula_plan(KB,[Accion|Resto],Ok,NuevaKB):-
     write('Accion: '),write(Accion),nl,
-    simula_accion(KB,Accion,AOk,KB2),
+    simula_accion(KB,Accion,AOk,KB2,1),
     %imprime(KB2),nl,
     (
         (
@@ -62,7 +64,7 @@ simula_plan(KB,[],1,KB).
 * Cada acción tiene una probabilidad de éxito,
 * Si un número aleatorio del [0,1) es mayor o igual a la probabilidad fallamos.
 */
-simula_accion(KB,Accion,Ok,KB):-
+simula_accion(KB,Accion,Ok,KB,1):-
     obten_probabilidad(KB,Accion,P),
     random(0.0,1.0,R),
     P =< R,
@@ -76,7 +78,7 @@ simula_accion(KB,Accion,Ok,KB):-
 * Si la posición Lj no es mostrador o algún estante fallará.
 * Actualizala propiedad pos de golem
 */
-simula_accion(KB,mover(Li,Lj),1,NuevaKB):-
+simula_accion(KB,mover(Li,Lj),1,NuevaKB,_):-
     obten_posicion(KB,Li),
     extension_de_clase(KB,estante,Estantes),
     member(Lj,[mostrador|Estantes]),
@@ -88,7 +90,7 @@ simula_accion(KB,mover(Li,Lj),1,NuevaKB):-
 * Ok=1 Si el objeto se encontró
 * Ok = 0 Si el objeto no se encontró
 */
-simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
+simula_accion(KB,buscar(Oi),Ok,NuevaKB,_):-
     obten_posicion(KB,Pos),
     /* Aqui tenemos que actualizar las observaciones */
     obten_observaciones(KB,Observaciones),
@@ -172,14 +174,22 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
             dif(NoAlcanzablesAquiEnPendientes,[]),
             nl, write('Los siguientes objetos no se pueden alcanzar y se omitiran de los pendientes: '),nl,
             imprime(NoAlcanzablesAqui),
-            elimina_de_pendientes(Pendientes,ObjetosEnPendientes,NuevosPendentes),
+            elimina_de_pendientes(Pendientes,NoAlcanzablesAquiEnPendientes,NuevosPendentes),
             modifica_propiedad_de_objeto(KB2_,pendientes=>val(NuevosPendentes),golem,KB3),
             Ok=0,
             !
         );
         (KB3=KB2,
         /* Solo en caso de que el objeto que buscamos está en lo que vimos estamos bien*/
-        ((member(Oi,Contenido),Ok=1);Ok=0))
+        (
+            (
+                member(Oi,Contenido),
+                Ok=1
+            );
+                Ok=0,
+                nl,write('No ví: '),write(Oi),nl
+            )
+        )
     ),
     /*Obtenemos la lista de tareas pendientes */
     propiedades_de_objeto(KB3,golem,Props),
@@ -205,7 +215,7 @@ simula_accion(KB,buscar(Oi),Ok,NuevaKB):-
     (agrega_propiedad_a_objeto(NuevaKB_,observado,Pos,NuevaKB);modifica_propiedad_de_objeto(NuevaKB_,observado,Pos,NuevaKB)),
     !.
 
-simula_accion(KB,agarrar(Oi),1,NuevaKB):-
+simula_accion(KB,agarrar(Oi),1,NuevaKB,_):-
     obten_posicion(KB,Pos),
     obten_observaciones(KB,Observaciones),
     /*Verificamos que el objeto esta donde estamos parados*/
@@ -251,7 +261,7 @@ simula_accion(KB,agarrar(Oi),1,NuevaKB):-
     ),
     !.
 
-simula_accion(KB,colocar(Oi),1,NuevaKB):-
+simula_accion(KB,colocar(Oi),1,NuevaKB,_):-
     obten_posicion(KB,Pos),
     /* Buscamos dónde está el objeto Oi*/
     extension_de_relacion_(KB,tiene,Ext),
@@ -298,7 +308,7 @@ simula_accion(KB,colocar(Oi),1,NuevaKB):-
 /*
 * En cualquier otro caso regresamos la base inicial y Ok=0.
 */
-simula_accion(KB,_,0,KB).
+simula_accion(KB,_,0,KB,_).
 
 /*
 * lista_de_objetos_a_reacomodar(KB,Objetos,Pos,ListaReacomodar)
@@ -373,24 +383,40 @@ marca_productos(KB,[],_,KB).
  */
 establece_estante_observado(KB, Estante, Productos, NuevaKB) :-
     modifica_propiedad_de_objeto(KB, pos=>Estante, golem, KB1),
-    modifica_propiedad_de_objeto(KB1, tiene=>Productos, Estante, KB2),
-    obten_observaciones(KB1, Obs),
+    (agrega_relacion_a_objeto(KB1, tiene=>Productos, Estante, KB2);
+     modifica_relacion_de_objeto(KB1, tiene=>Productos, Estante, KB2)),
+    obten_observaciones(KB2, Obs),
     delete(Obs, _=>Estante, Obs1),
     filtra_por_atributos(Obs1, Productos, ABorrar),
+    /* cambié el orden para mantener integridad */
+    marca_productos(KB2,Productos,Estante,KB3),
+    obtiene_objetos_en_reporte(KB3,ObjetosEnReporte),
+    subtract(Productos,ObjetosEnReporte,NoConocodos),
+    ((dif(NoConocodos,[]),
+      obten_productos_marcados(KB3,Marcados),
+      subtract(NoConocodos,Marcados,NuevosDesconocidos),
+      dif(NuevosDesconocidos,[]),
+      nl,write('Me dí cuenta que también hay:'),nl,
+      imprime(NuevosDesconocidos),nl,
+      !);
+     (true)),
     subtract(Obs1, ABorrar, Obs2),
     construye_observaciones(Productos, Estante, NObs),
     append(NObs, Obs2, Observaciones),
-    modifica_propiedad_de_objeto(KB2, obs=>val(Observaciones), golem, NuevaKB),
+    modifica_propiedad_de_objeto(KB3, obs=>val(Observaciones), golem, NuevaKB),
     !.
 
 /*
  * Prepara la base de conocimiento para establecer el estado de un
  * estante, observarlo y actualizar el estado interno de golem.
  */
-prepara_kb_obs(File, Estante, Productos, NuevaKB) :-
-    open_kb(File, KB),
+prepara_kb_obs(KB, Estante, Productos, NuevaKB) :-
     establece_estante_observado(KB, Estante, Productos, KB1),
-    lista_de_objetos_a_reacomodar(KB1,Productos,Estante,AReac_),
+    obten_acciones_pendientes(KB1,PendientesPrevios),
+    objetos_validos(PendientesPrevios,ObjetosPrevios),
+    subtract(Productos,ObjetosPrevios,SubContenido),
+    lista_de_objetos_a_reacomodar(KB1,SubContenido,Estante,AReac_),
+
     extension_de_propiedad_(KB1, alcanzable, Objs),
     filtra_por_valor(Objs, no, NoAlcanzables),
     lista_de_atributos(NoAlcanzables, ObjsNoAlcanzables),
@@ -399,6 +425,8 @@ prepara_kb_obs(File, Estante, Productos, NuevaKB) :-
       obten_inalcanzables(KB,Inalcanzables),
       subtract(NoAlcanzablesAqui,Inalcanzables,InalcanzablesNuevos),
       dif(InalcanzablesNuevos,[]),
+      nl,write('Me dí cuenta que no puedo alcanzar esto:'),nl,
+      imprime(InalcanzablesNuevos),nl,
       append(Inalcanzables,InalcanzablesNuevos,NuevosInalcanzables_),
       list_to_set(NuevosInalcanzables_,NuevosInalcanzables),
       modifica_propiedad_de_objeto(KB1,inalcanzables=>val(NuevosInalcanzables),golem,KB2),
@@ -409,7 +437,9 @@ prepara_kb_obs(File, Estante, Productos, NuevaKB) :-
       objetos_validos(Pendientes,ObjetosEnPendientes),
       intersection(NoAlcanzablesAqui,ObjetosEnPendientes,NoAlcanzablesAquiEnPendientes),
       dif(NoAlcanzablesAquiEnPendientes,[]),
-      elimina_de_pendientes(Pendientes,ObjetosEnPendientes,NuevosPendentes),
+      nl, write('Los siguientes objetos no se pueden alcanzar y se omitiran de los pendientes: '),nl,
+      imprime(NoAlcanzablesAqui),
+      elimina_de_pendientes(Pendientes,NoAlcanzablesAquiEnPendientes,NuevosPendentes),
       modifica_propiedad_de_objeto(KB2,pendientes=>val(NuevosPendentes),golem,KB3),
       !);
      (KB3=KB2)),
@@ -428,14 +458,32 @@ prepara_kb_obs(File, Estante, Productos, NuevaKB) :-
  * decisión y un plan de acción.
  * ?- prueba_simulacion_un_paso('ejercicios/ejercicio1.txt',drink_shelf,[coca,heineken],Diag,Decs,Plan).
  */
-prueba_simulacion_un_paso(File, Estante, Productos, Diag, Decs, Plan) :-
-    prepara_kb_obs(File, Estante, Productos, KB),
+simula_un_paso(File, Estante, Productos) :-
+    open_kb(File, KB),
+    prepara_kb_obs(KB, Estante, Productos, KB1),
     write('Mi diagnóstico es: '), nl,nl,
-    diagnostico(KB, Diag, KB1),
+    diagnostico(KB1, Diag, KB2),
     imprime(Diag),nl,nl,
-    decision(KB1, Decs),
+    decision(KB2, Decs),
     write('Mi decisión es: '), nl,nl,
     imprime(Decs),nl,nl,
-    planeacion(KB1, Decs, Plan),
+    planeacion(KB2, Decs, Plan),
     write('Mi plan es: '),nl,nl,
+    imprime(Plan), nl, nl, !.
+
+/*
+ * Predicado para simulador dos pasos de observación consecutivos.
+ */
+simula_dos_pasos(File, [Estante1,Estante2],[ProdsEst1,ProdsEst2]) :-
+    open_kb(File,KB),
+    prepara_kb_obs(KB,Estante1,ProdsEst1,NKB),
+    prepara_kb_obs(NKB,Estante2,ProdsEst2,NKB1),
+    diagnostico(NKB1,Diag,NKB2),
+    decision(NKB2,Decs),
+    planeacion(NKB2,Decs,Plan),
+    write('Mi diagnóstico es: '), nl,
+    imprime(Diag),nl,nl,
+    write('Mi decisión es: '), nl,
+    imprime(Decs),nl,nl,
+    write('Mi plan es: '),nl,
     imprime(Plan), nl, nl.

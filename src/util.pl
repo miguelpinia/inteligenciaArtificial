@@ -547,3 +547,21 @@ obten_productos_marcados(KB,Marcados):-
     extension_de_propiedad_(KB,marcado,Ext),
     filtra_por_valor(Ext,si,Filtrados),
     lista_de_atributos(Filtrados,Marcados).
+
+/* Calcula costo de plan */
+calcula_costo_de_plan(KB,[Accion|Resto],CostoTotal):-
+    obten_costo(KB,Accion,C),
+    calcula_costo_de_plan(KB,Resto,CostoResto),
+    CostoTotal is CostoResto + C,
+    !.
+
+calcula_costo_de_plan(_,[],0).
+
+/* Calcula probabilidad */
+calcula_probabilidad_de_plan(KB,[Accion|Resto],ProbabilidadTolal):-
+    obten_probabilidad(KB,Accion,P),
+    calcula_probabilidad_de_plan(KB,Resto,ProbabilidadResto),
+    ProbabilidadTolal is ProbabilidadResto * P,
+    !.
+
+calcula_probabilidad_de_plan(_,[],1.0).

@@ -23,7 +23,7 @@
         pendientes=>val([entregar(coca)]),
         /* Aqui guardaremos la primera observación de los objetos */
         primera_observacion=>val([]),
-        /**/
+        /* Los objetos en reporte */
         objetos_en_reporte=>val([coca,heineken,noodles,bisquits])
     ],[]),
     /* Aqui definimos clases y objetos con caracteristicas
