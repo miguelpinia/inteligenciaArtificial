@@ -41,7 +41,7 @@
     /* LA COMIDA */
     clase(food,producto,[],[loc=>food_shelf],[]),
     clase(cereal,food,[],[],[kellogs]),
-    objeto(kellogs,cereal,[not(alcanzable)],[]),
+    objeto(kellogs,cereal,[],[]),
     clase(sopa,food,[],[],[noodles]),
     objeto(noodles,sopa,[],[]),
     /* EL PAN */

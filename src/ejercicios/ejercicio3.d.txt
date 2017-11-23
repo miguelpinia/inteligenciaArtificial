@@ -67,7 +67,7 @@
     /* RECOMPENSAS */
     objeto(r,top,[r=>val([mover(Li,Lj)=>1,buscar(Oi)=>1,colocar(Oi)=>1,agarrar(Oi)=>1])],[]),
     /* PROBABILIDADES */
-    objeto(p,top,[p=>val([mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9,agarrar(galletas)=>1,agarrar(noodles)=>0.1,agarrar(Oi)=>0.9])],[]),
+    objeto(p,top,[p=>val([mover(Li,Lj)=>0.9,buscar(Oi)=>0.9,colocar(Oi)=>0.9,agarrar(galletas)=>0.99,agarrar(noodles)=>0.1,agarrar(Oi)=>0.9])],[]),
     /* COSTOS */
     objeto(c,top,[c=>val([mover(mostrador,Li)=>1,mover(Li,mostrador)=>1,mover(Li,Lj)=>1.73205807,buscar(Oi)=>0.25,colocar(Oi)=>0.5,agarrar(Oi)=>0.5])],[])
 ]
