@@ -14,13 +14,13 @@ simulador(KB):-
     ((not(es_vacia(Diagnostico)),
       write('Mi diagnóstico acerca de las acciones del asistente son:'),nl,
       imprime(Diagnostico),nl);
-     (write('No tengo información suficiente para realizar un diagnóstico.'),nl)),
+     (write('No puedo inferir nuevas acciones del asistente para realizar un diagnóstico.'),nl)),
     ((not(es_vacia(Decisiones)),
       write('Mi decisión es:'),nl,
       imprime(Decisiones),nl,
       write('Mi plan es:'),nl,
       imprime(Plan),nl);
-     (write('No tengo ínformación suficiente para tomar decisiones y diseñar un plan.'),nl)),
+     (write('Ya no tengo acciones pendientes para tomar decisiones y diseñar un plan.'),nl)),
         /* Ya no nos importa el resultado, se ciclará hasta que termine con las acciones pendientes */
     simula_plan(KB2,Plan,_,NuevaKB),
     simulador(NuevaKB), !.
